@@ -71,7 +71,14 @@ const auth = async (params: AuthInputParams) => {
             value: JSON.stringify(response),
         }, () => {
         });
+
+        // TODO: Implement refresh flow
+        return chrome.storage.local.set({"ffiii_bearer": response.access_token});
     });
+}
+
+export function getBearerToken(): Promise<string> {
+    return chrome.storage.local.get(["ffiii_bearer"]).then(r => r.value);
 }
 
 const publicClientTokenRequest = async(tokenEndpoint: string, body: URLSearchParams) => {
@@ -90,9 +97,16 @@ const publicClientTokenRequest = async(tokenEndpoint: string, body: URLSearchPar
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    backgroundLog(`[message] ${JSON.stringify(message)}`)
     if (message.action === "submit") {
         auth(message.value).catch((error) => {
             backgroundLog(`[error] ${error}`)
+        })
+    }
+    if (message.action === "store_transactions") {
+        console.log('storing');
+        getBearerToken().then(token => {
+            console.log(`store transactions using token ${token}`)
         })
     }
     return true

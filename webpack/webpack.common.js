@@ -6,6 +6,7 @@ module.exports = {
     entry: {
         background: path.join(srcDir, 'background.ts'),
         initialize: path.join(srcDir, 'initialize.tsx'),
+        example_dot_com_scraper: path.join(srcDir, 'example_dot_com_scraper.tsx'),
     },
     output: {
         path: path.join(__dirname, "../dist"),
