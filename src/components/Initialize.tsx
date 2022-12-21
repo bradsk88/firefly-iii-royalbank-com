@@ -7,13 +7,7 @@ type Props = {}
 const Initialize = (props: Props) => {
   const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/`
 
-  const defaultConfig: AuthFormConfig = {
-    baseURL: null,
-    clientTypesSupported: ["public", "confidential"],
-    tokenEndpointAuthMethodSupported: ["client_secret_basic", "client_secret_post"],
-  }
-
-  const [authConfig, setAuthConfig] = useState<AuthFormConfig>(defaultConfig)
+  const [baseURL, setBaseURL] = useState<string>("")
   const [log, setLog] = useState<string>("")
   const [result, setResult] = useState<string>("")
   const logRef = useRef<HTMLTextAreaElement>(null)
@@ -42,7 +36,6 @@ const Initialize = (props: Props) => {
   return (
     <>
       <AuthForm
-        config={authConfig}
         redirectUri={redirectUri}
         onSubmit={(params) => {
           setLog("");

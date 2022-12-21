@@ -13,7 +13,7 @@ const buildAuthorizationUrl = async (params: AuthInputParams, PKCECodeVerifier: 
     url.searchParams.set('client_id', params.clientId)
     url.searchParams.set('redirect_uri', params.redirectUri)
     url.searchParams.set('response_type', 'code')
-    url.searchParams.set('code_challenge_method', 'SHA-256')
+    url.searchParams.set('code_challenge_method', 'S256')
     const codeChallenge = await generateCodeChallenge(PKCECodeVerifier)
     url.searchParams.set('code_challenge', codeChallenge)
 
@@ -52,14 +52,12 @@ const auth = async (params: AuthInputParams) => {
             client_id: params.clientId,
             redirect_uri: params.redirectUri,
             code: code,
+            code_verifier: PKCECodeVerifier,
         })
 
-        const response = await confidentialClientTokenRequest(
+        const response = await publicClientTokenRequest(
             params.tokenEndpoint,
-            params.clientId,
-            params.clientSecret,
             body,
-            params.tokenEndpointAuthMethod
         );
 
         try {
@@ -76,27 +74,14 @@ const auth = async (params: AuthInputParams) => {
     });
 }
 
-const confidentialClientTokenRequest = async(tokenEndpoint: string, clientId: string, clientSecret: string, body: URLSearchParams, tokenRequstAuth: TokenEndPointAuthMethod) => {
-    const headers: {[key: string]: string} = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
-    }
-
-    if (tokenRequstAuth === 'client_secret_basic') {
-        const authHeader = 'Basic ' + btoa(`${clientId}:${clientSecret}`);
-        backgroundLog(`using Authorization header: ${authHeader}`)
-        headers['Authorization'] = authHeader
-    } else if (tokenRequstAuth === 'client_secret_post') {
-        backgroundLog(`set authorization params in body`)
-        body.append('client_secret', clientSecret)
-    } else {
-        backgroundLog(`[error] unknown token request auth: ${tokenRequstAuth}`)
-    }
-
-    backgroundLog(`token request body for confidential client: ${body}`)
+const publicClientTokenRequest = async(tokenEndpoint: string, body: URLSearchParams) => {
+    backgroundLog(`token request body for public client: ${body}`)
     const data = await fetch(tokenEndpoint, {
         method: 'POST',
-        headers: headers,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json',
+        },
         body: body.toString(),
     }).then(response => response.json()).then(data => {
         return data

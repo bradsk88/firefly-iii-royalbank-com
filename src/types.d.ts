@@ -1,6 +1,3 @@
-declare type ClientType = 'public' | 'confidential'
-declare type TokenEndPointAuthMethod = 'client_secret_basic' | 'client_secret_post' | 'none'
-
 declare type OAuthMetaData = {
     issuer: string;
     authorizationEndpoint: string | null;
@@ -11,8 +8,6 @@ declare type OAuthMetaData = {
     responseTypesSupported: string[];
     responseModesSupporteds?: string[]; // If omitted, the default is "["query", "fragment"]"
     grantTypesSupported?: string[]; // If omitted, the default value is "["authorization_code", "implicit"]"
-    tokenEndpointAuthMethodsSupported?: TokenEndPointAuthMethod[]; // If omitted, the default is "client_secret_basic"
-    tokenEndpointAuthSigningAlgValuesSupported?: string[]; // If omitted, the default is "RS256"
     serviceDocumentation?: string;
     uiLocalesSupported?: string[];
     opPolicyUri?: string;
@@ -25,17 +20,9 @@ declare type OAuthMetaData = {
     introspectionEndpointAuthSigningAlgValuesSupported?: string[];
 }
 
-declare type AuthFormConfig = {
-    baseURL: string | null;
-    clientTypesSupported: ClientType[];
-    tokenEndpointAuthMethodSupported: TokenEndPointAuthMethod[],
-}
-
 declare type AuthInputParams = {
     authorizationEndpoint: string;
     tokenEndpoint: string;
     clientId: string;
-    clientSecret: string;
     redirectUri: string;
-    tokenEndpointAuthMethod: TokenEndPointAuthMethod,
 };

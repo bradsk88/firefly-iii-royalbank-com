@@ -2,20 +2,16 @@ import * as React from 'react'
 import { useEffect, useRef, useState } from 'react'
 
 type Props = {
-  config: AuthFormConfig
   redirectUri: string
   onSubmit: (params: AuthInputParams) => void
 }
 
 const AuthForm = (props: Props) => {
-  const { config, redirectUri: defaultRedirectUri, onSubmit } = props;
+  const { redirectUri: defaultRedirectUri, onSubmit } = props;
 
-  const [baseURL, setBaseURL] = useState<string>(config.baseURL ?? "");
-  const [clientType, setClientType] = useState<ClientType>(config.clientTypesSupported[0]);
+  const [baseURL, setBaseURL] = useState<string>("");
   const [clientId, setClientId] = useState<string>("");
-  const [clientSecret, setClientSecret] = useState<string>("");
   const [redirectUri, _] = useState<string>(defaultRedirectUri);
-  const [tokenEndpointAuthMethod, setTokenEndpointAuthMethod] = useState<TokenEndPointAuthMethod>(config.tokenEndpointAuthMethodSupported[0]);
 
   const [copyButtonText, setCopyButtonText] = useState("copy");
 
@@ -35,13 +31,10 @@ const AuthForm = (props: Props) => {
           e.preventDefault();
 
           const params = {
-            authorizationEndpoint: `${(config.baseURL || baseURL)}/oauth/authorize`,
-            tokenEndpoint: `${(config.baseURL || baseURL)}/oauth/token`,
-            clientType,
+            authorizationEndpoint: `${(baseURL)}/oauth/authorize`,
+            tokenEndpoint: `${(baseURL)}/oauth/token`,
             clientId,
-            clientSecret,
             redirectUri,
-            tokenEndpointAuthMethod,
           };
           onSubmit(params)
         }}
@@ -59,7 +52,7 @@ const AuthForm = (props: Props) => {
               size={40}
               form="form"
               required
-              value={config.baseURL || baseURL}
+              value={baseURL}
               onChange={(e) => setBaseURL(e.target.value)}
             />
           </div>
@@ -67,29 +60,6 @@ const AuthForm = (props: Props) => {
 
         <fieldset>
           <legend>Client Config</legend>
-          <div>
-            Client Type
-            <input
-              type="radio"
-              id="client_type_public"
-              name="client_type"
-              value="public"
-              checked={clientType === "public"}
-              onChange={() => setClientType("public")}
-              disabled={!config.clientTypesSupported.includes("public")}
-            />
-            <label htmlFor="client_type_public">Public</label>
-            <input
-              type="radio"
-              id="client_type_confidential"
-              name="client_type"
-              value="confidential"
-              checked={clientType === "confidential"}
-              onChange={() => setClientType("confidential")}
-              disabled={!config.clientTypesSupported.includes("confidential")}
-            />
-            <label htmlFor="client_type_confidential">Confidential</label>
-          </div>
 
           <div>
             <label htmlFor="client_id">Client ID</label>
@@ -100,19 +70,6 @@ const AuthForm = (props: Props) => {
               value={clientId}
               onChange={(e) => {
                 setClientId(e.target.value);
-              }}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="client_secret">Client Secret</label>
-            <input
-              type="text"
-              name="client_secret"
-              size={30}
-              value={clientSecret}
-              onChange={(e) => {
-                setClientSecret(e.target.value);
               }}
             />
           </div>
@@ -145,35 +102,6 @@ const AuthForm = (props: Props) => {
         </fieldset>
 
         <fieldset>
-
-          <div>
-            Auth Method
-            <input
-              type="radio"
-              id="token_endpoint_auth_method_client_secret_basic"
-              name="token_endpoint_auth_method"
-              value="client_secret_basic"
-              checked={tokenEndpointAuthMethod === "client_secret_basic"}
-              onChange={() => setTokenEndpointAuthMethod("client_secret_basic")}
-              disabled={!config.tokenEndpointAuthMethodSupported.includes("client_secret_basic")}
-            />
-            <label htmlFor="token_endpoint_auth_method_client_secret_basic">
-              Client Secret Basic (Authorization Header)
-            </label>
-            <input
-              type="radio"
-              id="token_endpoint_auth_method_client_secret_post"
-              name="token_endpoint_auth_method"
-              value="client_secret_post"
-              checked={tokenEndpointAuthMethod === "client_secret_post"}
-              onChange={() => setTokenEndpointAuthMethod("client_secret_post")}
-              disabled={!config.tokenEndpointAuthMethodSupported.includes("client_secret_post")}
-            />
-            <label htmlFor="token_endpoint_auth_method_client_secret_post">
-              Client Secret Post (Body Parameter)
-            </label>
-          </div>
-
           {/* 
           <div>
             <input type="checkbox" id="use_curl" name="use_curl" disabled />
