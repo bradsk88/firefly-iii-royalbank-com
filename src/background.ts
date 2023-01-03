@@ -1,4 +1,7 @@
 import {generateCodeVerifier, generateCodeChallenge, createURLSearchParams} from './utils'
+import {AccountsApi, Configuration} from "firefly-iii-sdk-typescript";
+import axios, {AxiosPromise, AxiosRequestConfig, AxiosResponse} from 'axios';
+import {AccountArray} from "firefly-iii-sdk-typescript/dist/api";
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -73,15 +76,23 @@ const auth = async (params: AuthInputParams) => {
         });
 
         // TODO: Implement refresh flow
-        return chrome.storage.local.set({"ffiii_bearer": response.access_token});
+        return chrome.storage.local.set({
+            "ffiii": {
+                "bearer_token": response.access_token
+            }
+        }, () => {
+        });
     });
 }
 
 export function getBearerToken(): Promise<string> {
-    return chrome.storage.local.get(["ffiii_bearer"]).then(r => r.value);
+    return chrome.storage.local.get(["ffiii"]).then(r => {
+        backgroundLog(`from local storage: ${JSON.stringify(r)}`)
+        return r.ffiii.bearer_token;
+    });
 }
 
-const publicClientTokenRequest = async(tokenEndpoint: string, body: URLSearchParams) => {
+const publicClientTokenRequest = async (tokenEndpoint: string, body: URLSearchParams) => {
     backgroundLog(`token request body for public client: ${body}`)
     const data = await fetch(tokenEndpoint, {
         method: 'POST',
@@ -102,12 +113,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         auth(message.value).catch((error) => {
             backgroundLog(`[error] ${error}`)
         })
-    }
-    if (message.action === "store_transactions") {
-        console.log('storing');
+    } else if (message.action === "store_transactions") {
+        backgroundLog('storing tx')
         getBearerToken().then(token => {
-            console.log(`store transactions using token ${token}`)
+            // TODO: Initialize once
+            new AccountsApi(
+                new Configuration({
+                    accessToken: token,
+                }),
+                'http://http://192.168.0.124:4575',
+                axios.create({
+                    adapter: axios.defaults.adapter,
+                }),
+            ).listAccount().then(r => backgroundLog(JSON.stringify(r)));
         })
+    } else {
+        return false;
     }
     return true
 });

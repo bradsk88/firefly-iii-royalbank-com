@@ -1,0 +1,1 @@
+(()=>{"use strict";window.onload=()=>{const t=document.createElement("button");t.textContent="Example Button",t.addEventListener("click",(()=>{console.log("sent"),chrome.runtime.sendMessage({action:"store_transactions"},(()=>{}))}),!1),document.body.append(t)}})();
