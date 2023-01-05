@@ -1,7 +1,5 @@
-import {generateCodeVerifier, generateCodeChallenge, createURLSearchParams} from './utils'
-import {AccountsApi, Configuration} from "firefly-iii-sdk-typescript";
-import axios, {AxiosPromise, AxiosRequestConfig, AxiosResponse} from 'axios';
-import {AccountArray} from "firefly-iii-sdk-typescript/dist/api";
+import {createURLSearchParams, generateCodeChallenge, generateCodeVerifier} from './utils'
+import {AccountsApi, Configuration} from "firefly-iii-typescript-sdk-fetch";
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -121,11 +119,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 new Configuration({
                     accessToken: token,
                 }),
-                'http://http://192.168.0.124:4575',
-                axios.create({
-                    adapter: axios.defaults.adapter,
-                }),
-            ).listAccount().then(r => backgroundLog(JSON.stringify(r)));
+            ).listAccount({}).then((r: any) => backgroundLog(JSON.stringify(r)));
         })
     } else {
         return false;

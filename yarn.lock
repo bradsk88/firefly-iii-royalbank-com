@@ -517,6 +517,11 @@
   dependencies:
     "axios" "^0.27.2"
 
+"firefly-iii-typescript-sdk-fetch@file:../firefly-iii-typescript-sdk-fetch/firefly-iii-typescript-sdk-fetch-1.0.0.tgz":
+  "integrity" "sha512-zS9udTxYZVYJBdGC3UVZeTsgUdYyV/IriRgyd0o8i1/5kU28eItIgXOQsCqcHWPtqEd7rgRUHMC008N7PzEPSw=="
+  "resolved" "file:../firefly-iii-typescript-sdk-fetch/firefly-iii-typescript-sdk-fetch-1.0.0.tgz"
+  "version" "1.0.0"
+
 "follow-redirects@^1.14.9":
   "integrity" "sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA=="
   "resolved" "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.15.2.tgz"
@@ -1026,6 +1031,11 @@
   "integrity" "sha512-JcKqAHLPxcdb9KM49dufGXn2x3ssnfjbcaQdLlfZsL9rH9wgDQjUtDxbo8NE0F6SFvydeu1VhZe7hZuHsB2/pw=="
   "resolved" "https://registry.npmjs.org/wildcard/-/wildcard-2.0.0.tgz"
   "version" "2.0.0"
+
+"xmlhttprequest@^1.8.0":
+  "integrity" "sha512-58Im/U0mlVBLM38NdZjHyhuMtCqa61469k2YP/AaPbvCoV9aQGUpbJBj1QRm2ytRiVQBD/fsw7L2bJGDVQswBA=="
+  "resolved" "https://registry.npmjs.org/xmlhttprequest/-/xmlhttprequest-1.8.0.tgz"
+  "version" "1.8.0"
 
 "yallist@^4.0.0":
   "integrity" "sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A=="

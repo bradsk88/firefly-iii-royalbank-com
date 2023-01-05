@@ -23,5 +23,7 @@ module.exports = {
     },
     resolve: {
         extensions: [".ts", ".tsx", ".js"],
+        preferRelative: true
     },
+    target: ['node']
 };
