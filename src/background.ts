@@ -1,5 +1,6 @@
 import {createURLSearchParams, generateCodeChallenge, generateCodeVerifier} from './utils'
 import {AccountsApi, Configuration} from "firefly-iii-typescript-sdk-fetch";
+import {FetchParams, RequestContext} from "firefly-iii-typescript-sdk-fetch/dist/runtime";
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -117,7 +118,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // TODO: Initialize once
             new AccountsApi(
                 new Configuration({
-                    accessToken: token,
+                    basePath: "http://192.168.0.124:4575",
+                    accessToken: `Bearer ${token}`,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "accept": "application/vnd.api+json",
+                    },
+                    fetchApi: self.fetch.bind(self),
                 }),
             ).listAccount({}).then((r: any) => backgroundLog(JSON.stringify(r)));
         })
