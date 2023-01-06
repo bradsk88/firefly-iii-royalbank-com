@@ -1,5 +1,11 @@
 # Firefly III Chrome Extension Base
 
+## Status
+This project is still in early development, so it may require a higher level of 
+skill to utilize.
+
+## Purpose
+
 This is a "template" for building chrome extensions that can scrape account and 
 transaction data from banking websites and automatically push the data into an
 instance of Firefly III.
@@ -10,14 +16,12 @@ hands of third parties.
 
 ## Capabilities
 - Includes a menu for logging in to Firefly III with Oauth 2
-- Provides code examples for interacting with the Firefly III API 
-
-## Future Plans
-Ideally, this project would use dependency injection, so you can provide your 
-own "page scraping" service to satisfy a dependency interface, minimizing the 
-amount of overlap between your code and the base code.
+- Provides code examples for interacting with the Firefly III API
 
 ## Building your own extension
+Fork this repo and use it as a base for your extension.
 
-Fork this repo and use it as a base for your extension. This project is still 
-in early development, so it may require a higher level of skill to utilize.
+## Future Plans
+Ideally, this project would use dependency injection, so you can provide your
+own "page scraping" service to satisfy a dependency interface, minimizing the
+amount of overlap between your code and the base code.
