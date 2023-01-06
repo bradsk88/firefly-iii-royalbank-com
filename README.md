@@ -38,3 +38,8 @@ Fork this repo and use it as a base for your extension.
 Ideally, this project would use dependency injection, so you can provide your
 own "page scraping" service to satisfy a dependency interface, minimizing the
 amount of overlap between your code and the base code.
+
+## Credit
+- The OAuth2 component of this project was based on this project by satetsu888
+  - https://github.com/satetsu888/simple-oauth2-client-extension
+  - [Buy them a coffee](https://www.buymeacoffee.com/satetsu888)
