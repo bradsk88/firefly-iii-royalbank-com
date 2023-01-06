@@ -517,9 +517,9 @@
   dependencies:
     "axios" "^0.27.2"
 
-"firefly-iii-typescript-sdk-fetch@file:../firefly-iii-typescript-sdk-fetch/firefly-iii-typescript-sdk-fetch-1.0.0.tgz":
-  "integrity" "sha512-zS9udTxYZVYJBdGC3UVZeTsgUdYyV/IriRgyd0o8i1/5kU28eItIgXOQsCqcHWPtqEd7rgRUHMC008N7PzEPSw=="
-  "resolved" "file:../firefly-iii-typescript-sdk-fetch/firefly-iii-typescript-sdk-fetch-1.0.0.tgz"
+"firefly-iii-typescript-sdk-fetch@^1.0.0":
+  "integrity" "sha512-qOTfpoQ38rFvnNIYOchn8A2PdQgvhNETYQnMmRfpYy2dDpgRgBaYVUoYHf5ShW8kP7fhGq54pFalLcU9d0dJuw=="
+  "resolved" "https://registry.npmjs.org/firefly-iii-typescript-sdk-fetch/-/firefly-iii-typescript-sdk-fetch-1.0.0.tgz"
   "version" "1.0.0"
 
 "follow-redirects@^1.14.9":
