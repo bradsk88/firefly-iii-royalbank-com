@@ -14,6 +14,19 @@ This project exists as an alternative to the cloud-based banking APIs (E.g.
 plaid) in order to maximize privacy by keeping your banking data out of the 
 hands of third parties.
 
+## Motivation
+Here's the thing: 
+
+Banks don't really want you to pull your data into external services like 
+Firefly III, etc. They'd rather sell you products to manage your finances 
+(often for free) and keep all of your data in their walled gardens. This helps 
+them keep you away from competitors. It's smart business.
+
+With that in mind, providing a good, convenient way of exporting data (or, god 
+forbid, an API) is extremely rare from banks.
+
+So, scraping data from websites via a Chrome Extension is an alternative.
+
 ## Capabilities
 - Includes a menu for logging in to Firefly III with Oauth 2
 - Provides code examples for interacting with the Firefly III API
