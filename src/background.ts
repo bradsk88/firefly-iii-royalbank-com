@@ -2,7 +2,6 @@ import {createURLSearchParams, generateCodeChallenge, generateCodeVerifier} from
 import {AccountsApi, Configuration, TransactionsApi, TransactionStore} from "firefly-iii-typescript-sdk-fetch";
 import {AccountArray, AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
-import {OpeningBalance} from "./opening";
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -146,6 +145,13 @@ async function storeTransactions(
             transactionStore: txStore,
         }));
     })
+}
+
+export interface OpeningBalance {
+    accountNumber: string;
+    accountName: string;
+    balance: number;
+    date: Date;
 }
 
 async function storeOpeningBalance(

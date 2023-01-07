@@ -1,12 +1,15 @@
 const webpack = require("webpack");
 const path = require("path");
 const srcDir = path.join(__dirname, "..", "src");
+const scriptsDir = path.join(__dirname, "..", "src", "content_scripts");
 
 module.exports = {
     entry: {
         background: path.join(srcDir, 'background.ts'),
         initialize: path.join(srcDir, 'initialize.tsx'),
-        example_dot_com_scraper: path.join(srcDir, 'example_dot_com_scraper.tsx'),
+        accounts: path.join(scriptsDir, 'accounts.tsx'),
+        transactions: path.join(scriptsDir, 'transactions.tsx'),
+        opening: path.join(scriptsDir, 'opening.tsx'),
     },
     output: {
         path: path.join(__dirname, "../dist"),

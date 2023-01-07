@@ -32,7 +32,9 @@ So, scraping data from websites via a Chrome Extension is an alternative.
 - Provides code examples for interacting with the Firefly III API
 
 ## Building your own extension
-Fork this repo and use it as a base for your extension.
+Fork this repo and use it as a base for your extension. Implement the content 
+scripts in the [`src/content_scripts`](src/content_scripts) directory to scrape 
+your bank's pages.
 
 ## Future Plans
 Ideally, this project would use dependency injection, so you can provide your
