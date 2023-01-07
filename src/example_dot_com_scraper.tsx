@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import Initialize from "./components/Initialize";
 
-window.onload = () => {
+window.addEventListener("load",function(event) {
     const button = document.createElement("button");
     button.textContent = "Example Button"
     button.addEventListener("click", () => {
@@ -15,4 +15,4 @@ window.onload = () => {
         );
     }, false);
   document.body.append(button);
-};
+});
