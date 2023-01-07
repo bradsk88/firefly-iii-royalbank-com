@@ -1,6 +1,8 @@
 import {createURLSearchParams, generateCodeChallenge, generateCodeVerifier} from './utils'
-import {AccountsApi, Configuration} from "firefly-iii-typescript-sdk-fetch";
-import {FetchParams, RequestContext} from "firefly-iii-typescript-sdk-fetch/dist/runtime";
+import {AccountsApi, Configuration, TransactionsApi, TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {AccountArray, AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
+import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
+import {OpeningBalance} from "./opening";
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -86,7 +88,6 @@ const auth = async (params: AuthInputParams) => {
 
 export function getBearerToken(): Promise<string> {
     return chrome.storage.local.get(["ffiii"]).then(r => {
-        backgroundLog(`from local storage: ${JSON.stringify(r)}`)
         return r.ffiii.bearer_token;
     });
 }
@@ -106,30 +107,148 @@ const publicClientTokenRequest = async (tokenEndpoint: string, body: URLSearchPa
     return data
 }
 
+async function storeAccounts(data: AccountStore[]) {
+    getBearerToken().then(token => {
+        // TODO: Initialize once
+        let api = new AccountsApi(
+            new Configuration({
+                basePath: "http://192.168.0.124:4575",
+                accessToken: `Bearer ${token}`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/vnd.api+json",
+                },
+                fetchApi: self.fetch.bind(self),
+            }),
+        );
+        // api.listAccount({}).then((r: any) => backgroundLog(JSON.stringify(r)));
+        data.forEach(accountStore => api.storeAccount({accountStore: accountStore}));
+    })
+}
+
+async function storeTransactions(
+    data: TransactionStore[],
+) {
+    getBearerToken().then(token => {
+        // TODO: Initialize once
+        let api = new TransactionsApi(
+            new Configuration({
+                basePath: "http://192.168.0.124:4575",
+                accessToken: `Bearer ${token}`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/vnd.api+json",
+                },
+                fetchApi: self.fetch.bind(self),
+            }),
+        );
+        data.forEach(txStore => api.storeTransaction({
+            transactionStore: txStore,
+        }));
+    })
+}
+
+async function storeOpeningBalance(
+    data: OpeningBalance,
+) {
+    getBearerToken().then(token => {
+        // TODO: Initialize once
+        let api = new AccountsApi(
+            new Configuration({
+                basePath: "http://192.168.0.124:4575",
+                accessToken: `Bearer ${token}`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/vnd.api+json",
+                },
+                fetchApi: self.fetch.bind(self),
+            }),
+        );
+        api.updateAccount({
+            id: data.accountNumber,
+            accountUpdate: {
+                name: data.accountName,
+                openingBalance: `${data.balance}`,
+                openingBalanceDate: data.date,
+            }
+        })
+    })
+}
+
+
+export async function listAccounts(): Promise<AccountRead[]> {
+    return getBearerToken().then(token => doListAccounts(token));
+}
+
+async function doListAccounts(
+    token: string,
+): Promise<AccountRead[]> {
+    let api = new AccountsApi(
+        new Configuration({
+            basePath: "http://192.168.0.124:4575",
+            accessToken: `Bearer ${token}`,
+            headers: {
+                "Content-Type": "application/json",
+                "accept": "application/vnd.api+json",
+            },
+            fetchApi: self.fetch.bind(self),
+        }),
+    );
+    return api.listAccount({
+        // TODO: handle lots of accounts (multiple pages)
+    }).then(
+        (arr: AccountArray) => arr.data,
+    );
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     backgroundLog(`[message] ${JSON.stringify(message)}`)
+
+    // Remember that all of these need to do ASYNC work (including logging)
+
     if (message.action === "submit") {
         auth(message.value).catch((error) => {
             backgroundLog(`[error] ${error}`)
         })
+    } else if (message.action === "store_accounts") {
+        storeAccounts(message.value).catch((error) => {
+            backgroundLog(`[error] ${error}`)
+        });
     } else if (message.action === "store_transactions") {
-        backgroundLog('storing tx')
-        getBearerToken().then(token => {
-            // TODO: Initialize once
-            new AccountsApi(
-                new Configuration({
-                    basePath: "http://192.168.0.124:4575",
-                    accessToken: `Bearer ${token}`,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "accept": "application/vnd.api+json",
-                    },
-                    fetchApi: self.fetch.bind(self),
-                }),
-            ).listAccount({}).then((r: any) => backgroundLog(JSON.stringify(r)));
-        })
+        patchDates(message.value).then(
+            txStore => storeTransactions(txStore),
+        ).catch((error) => {
+            backgroundLog(`[error] ${error}`)
+        });
+
+    } else if (message.action === "store_opening") {
+        patchDatesOB(message.value).then(
+            obStore => storeOpeningBalance(obStore),
+        ).catch((error) => {
+            backgroundLog(`[error] ${error}`)
+        });
+
+    } else if (message.action === "list_accounts") {
+        listAccounts().then(accounts => sendResponse(accounts));
+        return true;
     } else {
+        backgroundLog(`[UNRECOGNIZED ACTION] ${message.action}`);
         return false;
     }
     return true
 });
+
+async function patchDates(data: TransactionStore[]): Promise<TransactionStore[]> {
+    return data.map(ts => {
+        ts.transactions = ts.transactions.map(v => {
+            v.date = new Date(v.date); // Dates are converted to strings for message
+            return v;
+        })
+        return ts;
+    });
+}
+
+async function patchDatesOB(data: OpeningBalance): Promise<OpeningBalance> {
+    data.date = new Date(data.date);
+    return data;
+}

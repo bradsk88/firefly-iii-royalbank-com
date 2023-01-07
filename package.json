@@ -18,8 +18,8 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "firefly-iii-sdk-typescript": "^1.0.1",
     "firefly-iii-typescript-sdk-fetch": "^1.0.0",
+    "js-sha512": "^0.8.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "xmlhttprequest": "^1.8.0"
