@@ -21,5 +21,5 @@ export function parseDate(dateStr: string): Date {
     const monthPrf: string = dayParts[0].substring(0, 3);
     const month = monthIndexes[monthPrf];
     const day = Number.parseInt(dayParts[1]);
-    return new Date(year, month, day);
+    return new Date(year || new Date().getFullYear(), month, day);
 }
