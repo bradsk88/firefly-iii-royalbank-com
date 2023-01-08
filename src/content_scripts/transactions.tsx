@@ -11,7 +11,7 @@ function scrapeTransactionsFromPage(): TransactionStore[] {
 
 window.addEventListener("load",function(event) {
     const button = document.createElement("button");
-    button.textContent = "Export Opening Balance"
+    button.textContent = "Export Transactions"
     button.addEventListener("click", () => {
         const transactions = scrapeTransactionsFromPage();
         chrome.runtime.sendMessage(
