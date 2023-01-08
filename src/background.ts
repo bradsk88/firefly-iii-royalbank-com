@@ -223,7 +223,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             backgroundLog(`[error] ${error}`)
         });
     } else if (message.action === "store_transactions") {
-        patchDatesAndOvoidDupes(message.value).then(
+        patchDatesAndAvoidDupes(message.value).then(
             txStore => storeTransactions(txStore),
         ).catch((error) => {
             backgroundLog(`[error] ${error}`)
@@ -246,7 +246,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true
 });
 
-async function patchDatesAndOvoidDupes(data: TransactionStore[]): Promise<TransactionStore[]> {
+async function patchDatesAndAvoidDupes(data: TransactionStore[]): Promise<TransactionStore[]> {
     return data.map(ts => {
         ts.errorIfDuplicateHash = ts.errorIfDuplicateHash === undefined ? true : undefined;
         ts.transactions = ts.transactions.map(v => {
