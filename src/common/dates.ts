@@ -1,17 +1,17 @@
 
 export const monthIndexes: { [key: string]: number } = {
-    'Jan': 0,
-    'Feb': 1,
-    'Mar': 2,
-    'Apr': 3,
-    'May': 4,
-    'Jun': 5,
-    'Jul': 6,
-    'Aug': 7,
-    'Sep': 8,
-    'Oct': 9,
-    'Nov': 10,
-    'Dec': 11,
+    'jan': 0,
+    'feb': 1,
+    'mar': 2,
+    'apr': 3,
+    'may': 4,
+    'jun': 5,
+    'jul': 6,
+    'aug': 7,
+    'sep': 8,
+    'oct': 9,
+    'nov': 10,
+    'dec': 11,
 }
 
 export function parseDate(dateStr: string): Date {
@@ -19,7 +19,7 @@ export function parseDate(dateStr: string): Date {
     const year = Number.parseInt(dateParts[1]);
     let dayParts = dateParts[0].split(' ');
     const monthPrf: string = dayParts[0].substring(0, 3);
-    const month = monthIndexes[monthPrf];
+    const month = monthIndexes[monthPrf.toLowerCase()];
     const day = Number.parseInt(dayParts[1]);
     return new Date(year || new Date().getFullYear(), month, day);
 }
