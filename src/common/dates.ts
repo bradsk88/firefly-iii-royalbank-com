@@ -1,5 +1,5 @@
 
-const monthIndexes: { [key: string]: number } = {
+export const monthIndexes: { [key: string]: number } = {
     'Jan': 0,
     'Feb': 1,
     'Mar': 2,
