@@ -1,4 +1,3 @@
-import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {OpeningBalance} from "../background";
 
 // TODO: You will need to update manifest.json so this file will be loaded on

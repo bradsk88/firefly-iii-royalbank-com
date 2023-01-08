@@ -1,4 +1,3 @@
-import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
 
 // TODO: You will need to update manifest.json so this file will be loaded on
