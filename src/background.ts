@@ -217,7 +217,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             backgroundLog(`[error] ${error}`)
         })
     } else if (message.action === "store_accounts") {
-        storeAccounts(message.value).catch((error) => {
+        patchDatesAccount(message.value).then(
+            accs => storeAccounts(accs),
+        ).catch((error) => {
             backgroundLog(`[error] ${error}`)
         });
     } else if (message.action === "store_transactions") {
@@ -257,4 +259,14 @@ async function patchDates(data: TransactionStore[]): Promise<TransactionStore[]>
 async function patchDatesOB(data: OpeningBalance): Promise<OpeningBalance> {
     data.date = new Date(data.date);
     return data;
+}
+
+async function patchDatesAccount(data: AccountStore[]): Promise<AccountStore[]> {
+    return data.map(acc => {
+        const d = acc.monthlyPaymentDate;
+        acc.monthlyPaymentDate = d ? new Date(d) : d;
+        const od = acc.openingBalanceDate;
+        acc.openingBalanceDate = od? new Date(od) : od;
+        return acc;
+    });
 }
