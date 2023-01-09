@@ -14,14 +14,14 @@ export function addButtonOnURLMatch(
     checkButtonExists: () => boolean,
     addButton: () => void,
 ): void {
-
-    addLocationObserver(() => {
+    let callback = () => {
         if (checkButtonExists()) {
             return;
         }
         if (window.location.href.endsWith(urlPath)) {
             addButton();
         }
-    });
-
+    };
+    addLocationObserver(callback);
+    callback();
 }

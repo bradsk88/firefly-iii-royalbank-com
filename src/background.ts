@@ -248,7 +248,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function patchDatesAndAvoidDupes(data: TransactionStore[]): Promise<TransactionStore[]> {
     return data.map(ts => {
-        ts.errorIfDuplicateHash = ts.errorIfDuplicateHash === undefined ? true : undefined;
+        ts.errorIfDuplicateHash = ts.errorIfDuplicateHash === undefined ? true : ts.errorIfDuplicateHash;
         ts.transactions = ts.transactions.map(v => {
             v.date = new Date(v.date); // Dates are converted to strings for message
             return v;
