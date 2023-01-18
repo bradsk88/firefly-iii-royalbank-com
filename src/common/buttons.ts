@@ -9,7 +9,9 @@ function addLocationObserver(callback: () => void) {
     observer.observe(document.body, config)
 }
 
-export function addButtonOnURLMatch(
+let lastUrl: string;
+
+export function runOnURLMatch(
     urlPath: string,
     checkButtonExists: () => boolean,
     addButton: () => void,
@@ -18,8 +20,10 @@ export function addButtonOnURLMatch(
         if (checkButtonExists()) {
             return;
         }
-        if (window.location.href.endsWith(urlPath)) {
+        let curUrl = window.location.href.split('?')[0];
+        if (curUrl !== lastUrl && curUrl.endsWith(urlPath)) {
             addButton();
+            lastUrl = curUrl;
         }
     };
     addLocationObserver(callback);

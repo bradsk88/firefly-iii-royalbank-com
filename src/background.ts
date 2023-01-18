@@ -1,7 +1,17 @@
-import {createURLSearchParams, generateCodeChallenge, generateCodeVerifier} from './utils'
-import {AccountsApi, Configuration, TransactionsApi, TransactionStore} from "firefly-iii-typescript-sdk-fetch";
-import {AccountArray, AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
+import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
+import {AutoRunState} from "./background/auto_state";
+import {doOauth, getBearerToken, getApiBaseUrl} from "./background/oauth";
+import {
+    doListAccounts,
+    doStoreAccounts,
+    doStoreOpeningBalance,
+    doStoreTransactions,
+    OpeningBalance
+} from "./background/firefly_export";
+import {getAutoRunLastTransaction, getAutoRunState, progressAutoRun, progressAutoTx} from "./background/auto";
+import {extensionId, hubExtensionId} from "./extensionid";
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -11,234 +21,112 @@ const backgroundLog = (string: string): void => {
     });
 }
 
-const buildAuthorizationUrl = async (params: AuthInputParams, PKCECodeVerifier: string) => {
-    const url = new URL(params.authorizationEndpoint)
-    url.searchParams.set('client_id', params.clientId)
-    url.searchParams.set('redirect_uri', params.redirectUri)
-    url.searchParams.set('response_type', 'code')
-    url.searchParams.set('code_challenge_method', 'S256')
-    const codeChallenge = await generateCodeChallenge(PKCECodeVerifier)
-    url.searchParams.set('code_challenge', codeChallenge)
-
-    return url.toString();
-}
-
-const auth = async (params: AuthInputParams) => {
-    backgroundLog(`params: ${JSON.stringify(params)}`)
-
-    const PKCECodeVerifier = generateCodeVerifier()
-    backgroundLog(`generate code_verifier: ${PKCECodeVerifier}`)
-    const authorizationUrl = await buildAuthorizationUrl(params, PKCECodeVerifier)
-    backgroundLog(`build authorizationUrl: ${authorizationUrl}`)
-
-    chrome.identity.launchWebAuthFlow({
-        url: authorizationUrl,
-        interactive: true
-    }, async (callbackUrlString) => {
-        if (callbackUrlString === undefined) {
-            backgroundLog("[error] callbackUrlString is undefined")
-            return
-        } else {
-            backgroundLog(`callbacked url: ${callbackUrlString}`)
+chrome.runtime.onConnectExternal.addListener(function (port) {
+    port.onMessage.addListener(function (msg) {
+        console.log('message', msg);
+        if (msg.action === "login") {
+            return chrome.storage.local.set({
+                "ffiii_bearer_token": msg.token,
+                "ffiii_api_base_url": msg.api_base_url,
+            }, () => {
+            });
         }
-        const callbackUrl = new URL(callbackUrlString);
-        const code = callbackUrl.searchParams.get('code');
-        if (code === null) {
-            backgroundLog("[error] code is null")
-            return
-        } else {
-            backgroundLog(`code: ${code}`)
-        }
-
-        const body = createURLSearchParams({
-            grant_type: 'authorization_code',
-            client_id: params.clientId,
-            redirect_uri: params.redirectUri,
-            code: code,
-            code_verifier: PKCECodeVerifier,
-        })
-
-        const response = await publicClientTokenRequest(
-            params.tokenEndpoint,
-            body,
-        );
-
-        try {
-            JSON.stringify(response)
-        } catch (e) {
-            backgroundLog(`[error] got malformed json response: ${response}, error: ${e}`)
-        }
-
-        chrome.runtime.sendMessage({
-            action: "result",
-            value: JSON.stringify(response),
-        }, () => {
-        });
-
-        // TODO: Implement refresh flow
-        return chrome.storage.local.set({
-            "ffiii": {
-                "bearer_token": response.access_token
-            }
-        }, () => {
-        });
     });
-}
+});
 
-export function getBearerToken(): Promise<string> {
-    return chrome.storage.local.get(["ffiii"]).then(r => {
-        return r.ffiii.bearer_token;
-    });
-}
-
-const publicClientTokenRequest = async (tokenEndpoint: string, body: URLSearchParams) => {
-    backgroundLog(`token request body for public client: ${body}`)
-    const data = await fetch(tokenEndpoint, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json',
-        },
-        body: body.toString(),
-    }).then(response => response.json()).then(data => {
-        return data
+function registerSelfWithHubExtension() {
+    console.log('registering self');
+    const port = chrome.runtime.connect(hubExtensionId);
+    port.postMessage({
+        action: "register",
+        extension: extensionId,
     })
-    return data
 }
+
+chrome.runtime.onStartup.addListener(function() {
+    setTimeout(registerSelfWithHubExtension, 1000);
+})
+
+setTimeout(registerSelfWithHubExtension, 1000);
+
+chrome.runtime.onConnectExternal.addListener(function (port) {
+    port.onMessage.addListener(function (msg) {
+        console.log('message', msg);
+        if (msg.action === "request_auto_run") {
+            progressAutoRun();
+        }
+    });
+});
 
 async function storeAccounts(data: AccountStore[]) {
-    getBearerToken().then(token => {
-        // TODO: Initialize once
-        let api = new AccountsApi(
-            new Configuration({
-                basePath: "http://192.168.0.124:4575",
-                accessToken: `Bearer ${token}`,
-                headers: {
-                    "Content-Type": "application/json",
-                    "accept": "application/vnd.api+json",
-                },
-                fetchApi: self.fetch.bind(self),
-            }),
-        );
-        // api.listAccount({}).then((r: any) => backgroundLog(JSON.stringify(r)));
-        data.forEach(accountStore => api.storeAccount({accountStore: accountStore}));
-    })
+    getBearerToken().then(token => doStoreAccounts(token, data))
 }
 
-async function storeTransactions(
-    data: TransactionStore[],
-) {
-    getBearerToken().then(token => {
-        // TODO: Initialize once
-        let api = new TransactionsApi(
-            new Configuration({
-                basePath: "http://192.168.0.124:4575",
-                accessToken: `Bearer ${token}`,
-                headers: {
-                    "Content-Type": "application/json",
-                    "accept": "application/vnd.api+json",
-                },
-                fetchApi: self.fetch.bind(self),
-            }),
-        );
-        data.forEach(txStore => api.storeTransaction({
-            transactionStore: txStore,
-        }));
-    })
+async function storeTransactions(data: TransactionStore[]) {
+    getBearerToken().then(token => doStoreTransactions(token, data));
 }
 
-export interface OpeningBalance {
-    accountNumber: string;
-    accountName: string;
-    balance: number;
-    date: Date;
+async function storeOpeningBalance(data: OpeningBalance) {
+    getBearerToken().then(token => doStoreOpeningBalance(token, data));
 }
-
-async function storeOpeningBalance(
-    data: OpeningBalance,
-) {
-    getBearerToken().then(token => {
-        // TODO: Initialize once
-        let api = new AccountsApi(
-            new Configuration({
-                basePath: "http://192.168.0.124:4575",
-                accessToken: `Bearer ${token}`,
-                headers: {
-                    "Content-Type": "application/json",
-                    "accept": "application/vnd.api+json",
-                },
-                fetchApi: self.fetch.bind(self),
-            }),
-        );
-        api.updateAccount({
-            id: data.accountNumber,
-            accountUpdate: {
-                name: data.accountName,
-                openingBalance: `${data.balance}`,
-                openingBalanceDate: data.date,
-            }
-        })
-    })
-}
-
 
 export async function listAccounts(): Promise<AccountRead[]> {
     return getBearerToken().then(token => doListAccounts(token));
 }
 
-async function doListAccounts(
-    token: string,
-): Promise<AccountRead[]> {
-    let api = new AccountsApi(
-        new Configuration({
-            basePath: "http://192.168.0.124:4575",
-            accessToken: `Bearer ${token}`,
-            headers: {
-                "Content-Type": "application/json",
-                "accept": "application/vnd.api+json",
-            },
-            fetchApi: self.fetch.bind(self),
-        }),
-    );
-    return api.listAccount({
-        // TODO: handle lots of accounts (multiple pages)
-    }).then(
-        (arr: AccountArray) => arr.data,
-    );
-}
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    backgroundLog(`[message] ${JSON.stringify(message)}`)
+    console.log('message', message);
 
     // Remember that all of these need to do ASYNC work (including logging)
 
     if (message.action === "submit") {
-        auth(message.value).catch((error) => {
+        doOauth(message.value).catch((error) => {
             backgroundLog(`[error] ${error}`)
         })
     } else if (message.action === "store_accounts") {
-        patchDatesAccount(message.value).then(
-            accs => storeAccounts(accs),
-        ).catch((error) => {
-            backgroundLog(`[error] ${error}`)
+        getAutoRunState().then(state => {
+            if (message.is_auto_run && state === AutoRunState.Done) {
+                return;
+            }
+            patchDatesAccount(message.value).then(
+                accs => storeAccounts(accs),
+            ).catch((error) => {
+                backgroundLog(`[error] ${error}`)
+            });
         });
     } else if (message.action === "store_transactions") {
-        patchDatesAndAvoidDupes(message.value).then(
-            txStore => storeTransactions(txStore),
-        ).catch((error) => {
-            backgroundLog(`[error] ${error}`)
-        });
-
+        getAutoRunState().then(state => {
+            if (message.is_auto_run && state === AutoRunState.Done) {
+                return;
+            }
+            patchDatesAndAvoidDupes(message.value).then(
+                txStore => storeTransactions(txStore),
+            ).catch((error) => {
+                backgroundLog(`[error] ${error}`)
+            });
+        })
     } else if (message.action === "store_opening") {
         patchDatesOB(message.value).then(
             obStore => storeOpeningBalance(obStore),
         ).catch((error) => {
             backgroundLog(`[error] ${error}`)
         });
-
     } else if (message.action === "list_accounts") {
         listAccounts().then(accounts => sendResponse(accounts));
-        return true;
+    } else if (message.action === "get_auto_run_state") {
+        getAutoRunState().then(state => sendResponse(state));
+    } else if (message.action === "increment_auto_run_tx_account") {
+        progressAutoTx(message.lastAccountNameCompleted);
+    } else if (message.action === "get_auto_run_tx_last_account") {
+        getAutoRunLastTransaction().then(accountNumber => sendResponse(accountNumber));
+    } else if (message.action === "complete_auto_run_state") {
+        if (message.state === AutoRunState.Accounts) {
+            progressAutoRun(AutoRunState.Transactions);
+        } else if (message.state === AutoRunState.Transactions) {
+            progressAutoRun(AutoRunState.Done);
+        }
+    } else if (message.action === "check_base_url") {
+        getApiBaseUrl().then(url => sendResponse(url));
     } else {
         backgroundLog(`[UNRECOGNIZED ACTION] ${message.action}`);
         return false;

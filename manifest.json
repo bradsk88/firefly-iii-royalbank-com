@@ -3,18 +3,21 @@
   "version": "1.0",
   "description": "Description goes here",
   "permissions": [
-    "identity",
-    "clipboardWrite",
-    "storage"
+    "storage",
+    "tabs"
   ],
-  "options_page": "options.html",
-  "host_permissions": [
-    "<all_urls>"
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "./dist/background.js"
   },
   "content_scripts": [
+    {
+      "matches": ["https://*.example.com/*"],
+      "js": ["./dist/auto.js"]
+    },
     {
       "matches": ["https://*.example.com/*"],
       "js": ["./dist/accounts.js"]
@@ -28,6 +31,8 @@
       "js": ["./dist/opening.js"]
     }
   ],
-  "devtools_page": "devtools.html",
+  "action": {
+    "default_popup": "options.html"
+  },
   "manifest_version": 3
 }

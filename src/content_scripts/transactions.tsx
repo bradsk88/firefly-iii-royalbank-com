@@ -1,43 +1,42 @@
 import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
-import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
-import {addButtonOnURLMatch} from "../common/buttons";
+import {AutoRunState} from "../background/auto_state";
+import {getCurrentPageAccount, scrapeTransactionsFromPage} from "./scrape/transactions";
+import {PageAccount} from "../common/accounts";
+import {runOnURLMatch} from "../common/buttons";
+import {runOnContentChange} from "../common/autorun";
 
 // TODO: You will need to update manifest.json so this file will be loaded on
 //  the correct URL.
 
-
-export interface PageAccount {
-    id: string;
-    name: string;
+interface TransactionScrape {
+    pageAccount: PageAccount;
+    pageTransactions: TransactionStore[];
 }
 
-/**
- * @param accounts The first page of account in your Firefly III instance
- */
-async function getCurrentPageAccount(
-    accounts: AccountRead[],
-): Promise<PageAccount> {
-    // TODO: Find either the account number or account name on the page.
-    const accountNumber = "<implement this>";
-    // Use that to find the Firefly III account ID from the provided list.
-    let acct = accounts.find(
-        acct => acct.attributes.accountNumber === accountNumber,
-    )!;
+let pageAlreadyScraped = false;
+
+async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
+    if (isAutoRun && pageAlreadyScraped) {
+        throw new Error("Already scraped. Stopping.");
+    }
+
+    const accounts = await chrome.runtime.sendMessage({
+        action: "list_accounts",
+    });
+    const id = await getCurrentPageAccount(accounts);
+    const txs = scrapeTransactionsFromPage(id.id);
+    pageAlreadyScraped = true;
+    await chrome.runtime.sendMessage({
+            action: "store_transactions",
+            is_auto_run: isAutoRun,
+            value: txs,
+        },
+        () => {
+        });
     return {
-        id: acct.id,
-        name: acct.attributes.name,
+        pageAccount: id,
+        pageTransactions: txs,
     };
-}
-
-/**
- * @param pageAccountId The Firefly III account ID for the current page
- */
-function scrapeTransactionsFromPage(
-    pageAccountId: string,
-): TransactionStore[] {
-    // TODO: This is where you implement the scraper to pull the individual
-    //  transactions from the page
-    return [];
 }
 
 const buttonId = 'firefly-iii-export-transactions-button';
@@ -47,30 +46,39 @@ function addButton() {
     //  account's transactions are listed.
     const button = document.createElement("button");
     button.textContent = "Export Transactions"
-    button.addEventListener("click", async () => {
-        const accounts = await chrome.runtime.sendMessage({
-            action: "list_accounts",
-        });
-        const id = await getCurrentPageAccount(accounts);
-        const transactions = scrapeTransactionsFromPage(id.id);
-        chrome.runtime.sendMessage(
-            {
-                action: "store_transactions",
-                value: transactions,
-            },
-            () => {
-            }
-        );
-    }, false);
-
-
+    button.addEventListener("click", async () => doScrape(false), false);
+    // TODO: Try to steal styling from the page to make this look good :)
+    button.classList.add("some", "classes", "from", "the", "page");
     document.body.append(button);
+}
+
+function enableAutoRun() {
+    chrome.runtime.sendMessage({
+        action: "get_auto_run_state",
+    }).then(state => {
+        if (state === AutoRunState.Transactions) {
+            doScrape(true)
+                .then((id: TransactionScrape) => chrome.runtime.sendMessage({
+                    action: "increment_auto_run_tx_account",
+                    lastAccountNameCompleted: id.pageAccount.name,
+                }, () => {
+                }));
+        }
+    });
 }
 
 // If your manifest.json allows your content script to run on multiple pages,
 // you can call this function more than once, or set the urlPath to "".
-addButtonOnURLMatch(
-    'accounts/main/details',
+runOnURLMatch(
+    'accounts/main/details', // TODO: Set this to your transactions page URL
     () => !!document.getElementById(buttonId),
-    () => addButton(),
+    () => {
+        pageAlreadyScraped = false;
+        addButton();
+    },
+)
+
+runOnContentChange(
+    'accounts/main/details', // TODO: Set this to your transactions page URL
+    enableAutoRun,
 )
