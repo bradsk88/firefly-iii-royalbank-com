@@ -1,6 +1,12 @@
 import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 
+export function getButtonDestination(): Element {
+    // TODO: Find a DOM element on the page where the manual "export to firefly"
+    //  button should go.
+    return document.body;
+}
+
 /**
  * @param accounts The first page of account in your Firefly III instance
  */

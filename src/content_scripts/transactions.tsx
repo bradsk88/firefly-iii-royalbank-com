@@ -1,6 +1,6 @@
 import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
 import {AutoRunState} from "../background/auto_state";
-import {getCurrentPageAccount, scrapeTransactionsFromPage} from "./scrape/transactions";
+import {getButtonDestination, getCurrentPageAccount, scrapeTransactionsFromPage} from "./scrape/transactions";
 import {PageAccount} from "../common/accounts";
 import {runOnURLMatch} from "../common/buttons";
 import {runOnContentChange} from "../common/autorun";
@@ -53,7 +53,7 @@ function addButton() {
     button.addEventListener("click", async () => doScrape(false), false);
     // TODO: Try to steal styling from the page to make this look good :)
     button.classList.add("some", "classes", "from", "the", "page");
-    document.body.append(button);
+    getButtonDestination().append(button);
 }
 
 function enableAutoRun() {
