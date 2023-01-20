@@ -11,7 +11,13 @@ import {
     OpeningBalance
 } from "./background/firefly_export";
 import {getAutoRunLastTransaction, getAutoRunState, progressAutoRun, progressAutoTx} from "./background/auto";
-import {extensionId, hubExtensionId} from "./extensionid";
+import {
+    extensionBankName,
+    extensionId,
+    extensionPrimaryColorHex,
+    extensionSecondaryColorHex,
+    hubExtensionId
+} from "./extensionid";
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -40,6 +46,9 @@ function registerSelfWithHubExtension() {
     port.postMessage({
         action: "register",
         extension: extensionId,
+        name: extensionBankName,
+        primary_color_hex: extensionPrimaryColorHex,
+        secondary_color_hex: extensionSecondaryColorHex,
     })
 }
 
