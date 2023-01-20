@@ -45,9 +45,11 @@ function registerSelfWithHubExtension() {
 
 chrome.runtime.onStartup.addListener(function() {
     setTimeout(registerSelfWithHubExtension, 1000);
+    setTimeout(registerSelfWithHubExtension, 5000);
 })
 
 setTimeout(registerSelfWithHubExtension, 1000);
+setTimeout(registerSelfWithHubExtension, 5000);
 
 chrome.runtime.onConnectExternal.addListener(function (port) {
     port.onMessage.addListener(function (msg) {
