@@ -6,6 +6,7 @@
     "storage",
     "tabs"
   ],
+  "options_page": "options.html",
   "optional_host_permissions": [
     "http://*/*",
     "https://*/*"

@@ -2,7 +2,7 @@ import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
 import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 import {AutoRunState} from "./background/auto_state";
-import {doOauth, getBearerToken, getApiBaseUrl} from "./background/oauth";
+import {doOauth, getApiBaseUrl, getBearerToken} from "./background/oauth";
 import {
     doListAccounts,
     doStoreAccounts,
@@ -10,7 +10,13 @@ import {
     doStoreTransactions,
     OpeningBalance
 } from "./background/firefly_export";
-import {getAutoRunLastTransaction, getAutoRunState, progressAutoRun, progressAutoTx} from "./background/auto";
+import {
+    getAutoRunLastTransaction,
+    getAutoRunState,
+    progressAutoRun,
+    progressAutoTx,
+    setAutoRunState
+} from "./background/auto";
 import {
     extensionBankName,
     extensionId,
@@ -64,7 +70,14 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
     port.onMessage.addListener(function (msg) {
         console.log('message', msg);
         if (msg.action === "request_auto_run") {
-            progressAutoRun();
+            chrome.permissions.getAll(async perms => {
+                await setAutoRunState(AutoRunState.Accounts);
+                if ((perms.origins?.filter(o => !o.includes("affinity")) || []).length > 0) {
+                    await progressAutoRun();
+                } else {
+                    chrome.runtime.openOptionsPage();
+                }
+            })
         }
     });
 });
@@ -124,6 +137,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     } else if (message.action === "list_accounts") {
         listAccounts().then(accounts => sendResponse(accounts));
+    } else if (message.action === "try_resume_auto_run") {
+        getAutoRunState().then(s => {
+            if (s === AutoRunState.Accounts) {
+                return progressAutoRun(s);
+            }
+        })
     } else if (message.action === "get_auto_run_state") {
         getAutoRunState().then(state => sendResponse(state));
     } else if (message.action === "increment_auto_run_tx_account") {

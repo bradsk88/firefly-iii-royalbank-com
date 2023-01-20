@@ -24,7 +24,7 @@ export async function progressAutoRun(state = AutoRunState.Accounts) {
     }
 }
 
-async function setAutoRunState(s: AutoRunState): Promise<void> {
+export async function setAutoRunState(s: AutoRunState): Promise<void> {
     return setAutoRunLastTx("")
         .then(() => chrome.storage.local.set({
             "ffiii_auto_run_state": s,

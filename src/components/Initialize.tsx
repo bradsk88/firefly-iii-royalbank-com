@@ -21,6 +21,10 @@ const Initialize = () => {
             }, (hasPerm) => {
                 if (hasPerm) {
                     setState(InitState.Complete);
+                    chrome.runtime.sendMessage({
+                        action: 'try_resume_auto_run',
+                    }, () => {})
+                    setTimeout(() => window.close(), 3000);
                 } else {
                     setState(InitState.NeedPerms);
                 }
@@ -48,7 +52,10 @@ const Initialize = () => {
                 </>
             }
             {state === InitState.Complete &&
-                <div>Everything is set up!</div>
+                <>
+                    <div>Everything is set up!</div>
+                    <div>This window will close automatically</div>
+                </>
             }
         </>
     );
