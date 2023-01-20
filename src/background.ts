@@ -18,6 +18,7 @@ import {
     setAutoRunState
 } from "./background/auto";
 import {
+    bankDomain,
     extensionBankName,
     extensionId,
     extensionPrimaryColorHex,
@@ -72,7 +73,7 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
         if (msg.action === "request_auto_run") {
             chrome.permissions.getAll(async perms => {
                 await setAutoRunState(AutoRunState.Accounts);
-                if ((perms.origins?.filter(o => !o.includes("affinity")) || []).length > 0) {
+                if ((perms.origins?.filter(o => !o.includes(bankDomain)) || []).length > 0) {
                     await progressAutoRun();
                 } else {
                     chrome.runtime.openOptionsPage();
