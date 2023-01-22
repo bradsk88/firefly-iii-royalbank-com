@@ -89,14 +89,20 @@ function enableAutoRun() {
     });
 }
 
-runOnURLMatch(
-    'accounts/main/details', // TODO: Set this to your accounts page URL
-    () => !!document.getElementById(buttonId),
+const accountsUrl = 'accounts/main/details'; // TODO: Set this to your accounts page URL
+
+runOnURLMatch(accountsUrl, () => pageAlreadyScraped = false);
+
+runOnContentChange(
+    accountsUrl,
     () => {
-        pageAlreadyScraped = false;
+        if (!!document.getElementById(buttonId)) {
+            return;
+        }
         addButton();
     },
-);
+    getButtonDestination,
+)
 
 runOnContentChange(
     'accounts/main/details', // TODO: Set this to your accounts page URL

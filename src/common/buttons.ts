@@ -13,13 +13,9 @@ let lastUrl: string;
 
 export function runOnURLMatch(
     urlPath: string,
-    checkButtonExists: () => boolean,
     addButton: () => void,
 ): void {
     let callback = () => {
-        if (checkButtonExists()) {
-            return;
-        }
         let curUrl = window.location.href.split('?')[0];
         if (curUrl !== lastUrl && curUrl.endsWith(urlPath)) {
             addButton();

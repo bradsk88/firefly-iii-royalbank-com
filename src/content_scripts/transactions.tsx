@@ -49,6 +49,7 @@ function addButton() {
     // TODO: This is where you add a "scrape" button to the page where the
     //  account's transactions are listed.
     const button = document.createElement("button");
+    button.id = buttonId;
     button.textContent = "Export Transactions"
     button.addEventListener("click", async () => doScrape(false), false);
     // TODO: Try to steal styling from the page to make this look good :)
@@ -71,18 +72,22 @@ function enableAutoRun() {
     });
 }
 
+const txPage = 'accounts/main/details'; // TODO: Set this to your transactions page URL
+
+runOnURLMatch(txPage, () => pageAlreadyScraped = false);
+
 // If your manifest.json allows your content script to run on multiple pages,
 // you can call this function more than once, or set the urlPath to "".
-runOnURLMatch(
-    'accounts/main/details', // TODO: Set this to your transactions page URL
-    () => !!document.getElementById(buttonId),
+runOnContentChange(
+    txPage,
     () => {
-        pageAlreadyScraped = false;
+        if (!!document.getElementById(buttonId)) {
+            return;
+        }
         addButton();
     },
+    getButtonDestination,
 )
 
-runOnContentChange(
-    'accounts/main/details', // TODO: Set this to your transactions page URL
-    enableAutoRun,
-)
+
+runOnContentChange(txPage, enableAutoRun)
