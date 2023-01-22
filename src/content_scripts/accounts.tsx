@@ -104,7 +104,4 @@ runOnContentChange(
     getButtonDestination,
 )
 
-runOnContentChange(
-    'accounts/main/details', // TODO: Set this to your accounts page URL
-    enableAutoRun,
-)
+runOnContentChange(accountsUrl, enableAutoRun)
