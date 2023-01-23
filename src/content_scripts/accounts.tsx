@@ -82,7 +82,8 @@ function enableAutoRun() {
                 .then(() => chrome.runtime.sendMessage({
                     action: "complete_auto_run_state",
                     state: AutoRunState.Accounts,
-                }));
+                }))
+                .then(() => openAccountForAutoRun());
         } else if (state === AutoRunState.Transactions) {
             openAccountForAutoRun();
         }
@@ -104,4 +105,9 @@ runOnContentChange(
     getButtonDestination,
 )
 
-runOnContentChange(accountsUrl, enableAutoRun)
+
+runOnContentChange(
+    accountsUrl,
+    enableAutoRun,
+    () => getAccountElements()[0]
+)

@@ -4,4 +4,5 @@ export const extensionPrimaryColorHex = 'FFFFFF'; // TODO: Choose a primary colo
 export const extensionSecondaryColorHex = '000000'; // TODO: Choose a secondary color (the flame in your extension's icon - if you stuck with that icon)
 export const extensionId = ''; // TODO: Put your extension ID here
 export const extensionBankName = `Untitled [${extensionId}]`; // TODO: Name your extension
+export const isSingleAccountBank = false; // TODO: If your bank only has one account (e.g. a credit card) set this true.
 export const hubExtensionId = 'kcghjdbnjdaabfigmmjgmgiaehjidpoh';

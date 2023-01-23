@@ -59,7 +59,7 @@ function registerSelfWithHubExtension() {
     })
 }
 
-chrome.runtime.onStartup.addListener(function() {
+chrome.runtime.onStartup.addListener(function () {
     setTimeout(registerSelfWithHubExtension, 1000);
     setTimeout(registerSelfWithHubExtension, 5000);
 })
@@ -102,12 +102,10 @@ export async function listAccounts(): Promise<AccountRead[]> {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('message', message);
 
-    // Remember that all of these need to do ASYNC work (including logging)
-
     if (message.action === "submit") {
         doOauth(message.value).catch((error) => {
             backgroundLog(`[error] ${error}`)
-        })
+        }).then(sendResponse)
     } else if (message.action === "store_accounts") {
         getAutoRunState().then(state => {
             if (message.is_auto_run && state === AutoRunState.Done) {
@@ -118,7 +116,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             ).catch((error) => {
                 backgroundLog(`[error] ${error}`)
             });
-        });
+        }).then(sendResponse);
     } else if (message.action === "store_transactions") {
         getAutoRunState().then(state => {
             if (message.is_auto_run && state === AutoRunState.Done) {
@@ -129,7 +127,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             ).catch((error) => {
                 backgroundLog(`[error] ${error}`)
             });
-        })
+        }).then(sendResponse)
     } else if (message.action === "store_opening") {
         patchDatesOB(message.value).then(
             obStore => storeOpeningBalance(obStore),
@@ -139,22 +137,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === "list_accounts") {
         listAccounts().then(accounts => sendResponse(accounts));
     } else if (message.action === "try_resume_auto_run") {
-        getAutoRunState().then(s => {
-            if (s === AutoRunState.Accounts) {
-                return progressAutoRun(s);
-            }
-        })
+        getAutoRunState()
+            .then(s => {
+                if (s === AutoRunState.Accounts) {
+                    return progressAutoRun(s);
+                }
+            })
+            .then(sendResponse)
     } else if (message.action === "get_auto_run_state") {
         getAutoRunState().then(state => sendResponse(state));
     } else if (message.action === "increment_auto_run_tx_account") {
-        progressAutoTx(message.lastAccountNameCompleted);
+        progressAutoTx(message.lastAccountNameCompleted).then(sendResponse);
     } else if (message.action === "get_auto_run_tx_last_account") {
         getAutoRunLastTransaction().then(accountNumber => sendResponse(accountNumber));
     } else if (message.action === "complete_auto_run_state") {
         if (message.state === AutoRunState.Accounts) {
-            progressAutoRun(AutoRunState.Transactions);
+            progressAutoRun(AutoRunState.Transactions).then(sendResponse);
         } else if (message.state === AutoRunState.Transactions) {
-            progressAutoRun(AutoRunState.Done);
+            progressAutoRun(AutoRunState.Done).then(sendResponse);
         }
     } else if (message.action === "check_base_url") {
         getApiBaseUrl().then(url => sendResponse(url));
@@ -186,7 +186,7 @@ async function patchDatesAccount(data: AccountStore[]): Promise<AccountStore[]> 
         const d = acc.monthlyPaymentDate;
         acc.monthlyPaymentDate = d ? new Date(d) : d;
         const od = acc.openingBalanceDate;
-        acc.openingBalanceDate = od? new Date(od) : od;
+        acc.openingBalanceDate = od ? new Date(od) : od;
         return acc;
     });
 }
