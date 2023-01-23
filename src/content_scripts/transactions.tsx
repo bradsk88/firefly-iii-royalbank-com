@@ -63,6 +63,11 @@ function enableAutoRun() {
     }).then(state => {
         if (state === AutoRunState.Transactions) {
             doScrape(true)
+                // TODO: If there is only one account to scrape, send this message instead
+                // .then((id: TransactionScrape) => chrome.runtime.sendMessage({
+                //     action: "complete_auto_run_state",
+                //     state: AutoRunState.Transactions,
+                // }));
                 .then((id: TransactionScrape) => chrome.runtime.sendMessage({
                     action: "increment_auto_run_tx_account",
                     lastAccountNameCompleted: id.pageAccount.name,
