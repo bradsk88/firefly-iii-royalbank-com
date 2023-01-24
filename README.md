@@ -33,8 +33,9 @@ forbid, an API) is extremely rare from banks.
 So, scraping data from websites via a Chrome Extension is an alternative.
 
 ## Capabilities
+- Provides a template to scrape most banks by writing ~25 easy bits of code.
 - Includes a menu for logging in to Firefly III with Oauth 2
-- Provides code examples for interacting with the Firefly III API
+- Integrates with the [Chrome Extension Hub]() to streamline user experience.
 
 ## Building your own extension
 Fork this repo and use it as a base for your extension. Implement the content 
