@@ -20,7 +20,6 @@ import {
 import {
     bankDomain,
     extensionBankName,
-    extensionId,
     extensionPrimaryColorHex,
     extensionSecondaryColorHex,
     hubExtensionId
@@ -52,7 +51,7 @@ function registerSelfWithHubExtension() {
     const port = chrome.runtime.connect(hubExtensionId);
     port.postMessage({
         action: "register",
-        extension: extensionId,
+        extension: chrome.runtime.id,
         name: extensionBankName,
         primary_color_hex: extensionPrimaryColorHex,
         secondary_color_hex: extensionSecondaryColorHex,

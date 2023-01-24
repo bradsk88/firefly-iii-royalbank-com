@@ -1,5 +1,10 @@
 # Firefly III Chrome Extension Base
 
+## Development
+Copy this template to a repo of your own and then follow the [Development Guide](
+./DEV_GUIDE.md
+)
+
 ## Status
 This project is still in early development, so it may require a higher level of 
 skill to utilize.

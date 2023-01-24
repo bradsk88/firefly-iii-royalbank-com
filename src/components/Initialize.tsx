@@ -1,13 +1,17 @@
 import * as React from 'react'
 import {useState} from 'react'
+import AuthForm from "./AuthForm";
 
 enum InitState {
     Loading = "loading",
+    SelfAuth = "self auth",
     NeedPerms = "needperms",
     Complete = "complete",
 }
 
 const Initialize = () => {
+    const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/`
+
     const [baseUrl, setBaseUrl] = useState<string>("")
     const [state, setState] = useState<InitState>(InitState.Loading)
 
@@ -29,6 +33,8 @@ const Initialize = () => {
                     setState(InitState.NeedPerms);
                 }
             })
+        } else {
+            setState(InitState.SelfAuth);
         }
     })
 
@@ -36,6 +42,18 @@ const Initialize = () => {
         <>
             {state === InitState.Loading &&
                 <div>Loading</div>
+            }
+            {state === InitState.SelfAuth &&
+                <AuthForm redirectUri={redirectUri} onSubmit={(params) => {
+                    chrome.runtime.sendMessage(
+                        {
+                            action: "submit",
+                            value: params,
+                        },
+                        () => {
+                        }
+                    );
+                }}></AuthForm>
             }
             {state === InitState.NeedPerms &&
                 <>
