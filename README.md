@@ -22,7 +22,9 @@ hands of third parties.
 ## Capabilities
 - Provides a template to scrape most banks by writing ~25 easy bits of code.
 - Includes a menu for logging in to Firefly III with Oauth 2
-- Integrates with the [Chrome Extension Hub]() to streamline user experience.
+- Integrates with the [Chrome Extension Hub](
+  https://github.com/bradsk88/firefly-iii-chrome-extension-hub) to streamline 
+  user experience.
 
 ## Motivation
 Here's the thing: 
