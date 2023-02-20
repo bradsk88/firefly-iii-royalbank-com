@@ -6,13 +6,11 @@
     "storage",
     "tabs"
   ],
-  "externally_connectable": [
-    {
-      "ids": [
-        "kcghjdbnjdaabfigmmjgmgiaehjidpoh"
-      ]
-    }
-  ],
+  "externally_connectable": {
+    "ids": [
+      "kcghjdbnjdaabfigmmjgmgiaehjidpoh"
+    ]
+  },
   "options_page": "options.html",
   "optional_host_permissions": [
     "http://*/*",
@@ -23,20 +21,36 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*.example.com/*"],
-      "js": ["./dist/auto.js"]
+      "matches": [
+        "https://*.example.com/*"
+      ],
+      "js": [
+        "./dist/auto.js"
+      ]
     },
     {
-      "matches": ["https://*.example.com/*"],
-      "js": ["./dist/accounts.js"]
+      "matches": [
+        "https://*.example.com/*"
+      ],
+      "js": [
+        "./dist/accounts.js"
+      ]
     },
     {
-      "matches": ["https://*.example.com/*"],
-      "js": ["./dist/transactions.js"]
+      "matches": [
+        "https://*.example.com/*"
+      ],
+      "js": [
+        "./dist/transactions.js"
+      ]
     },
     {
-      "matches": ["https://*.example.com/*"],
-      "js": ["./dist/opening.js"]
+      "matches": [
+        "https://*.example.com/*"
+      ],
+      "js": [
+        "./dist/opening.js"
+      ]
     }
   ],
   "action": {
