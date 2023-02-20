@@ -24,6 +24,7 @@ import {
     extensionSecondaryColorHex,
     hubExtensionId
 } from "./extensionid";
+import MessageSender = chrome.runtime.MessageSender;
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -52,7 +53,11 @@ chrome.runtime.onStartup.addListener(function () {
 setTimeout(registerSelfWithHubExtension, 1000);
 setTimeout(registerSelfWithHubExtension, 5000);
 
-chrome.runtime.onMessageExternal.addListener((msg: any, _: any, sendResponse: Function) => {
+chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, sendResponse: Function) => {
+    if (sender.id != hubExtensionId) {
+        console.error("Rejecting message from unexpected extension: ", sender.id)
+        return;
+    }
     console.log('message', msg);
     if (msg.action === "login") {
         return chrome.storage.local.set({
