@@ -63,7 +63,14 @@ chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, s
         return chrome.storage.local.set({
             "ffiii_bearer_token": msg.token,
             "ffiii_api_base_url": msg.api_base_url,
-        }, () => {
+        }).then(() => {
+            chrome.permissions.getAll(async perms => {
+                if ((perms.origins?.filter(o => !o.includes(bankDomain)) || []).length > 0) {
+                    return;
+                } else {
+                    chrome.runtime.openOptionsPage();
+                }
+            })
         });
     }
     if (msg.action === "request_auto_run") {
