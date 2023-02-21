@@ -3,8 +3,7 @@
   "version": "1.0",
   "description": "Description goes here",
   "permissions": [
-    "storage",
-    "tabs"
+    "storage"
   ],
   "externally_connectable": {
     "ids": [
