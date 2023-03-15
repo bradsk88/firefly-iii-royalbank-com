@@ -1,0 +1,60 @@
+{
+  "name": "My Firefly III OAuth2 Extension",
+  "version": "1.0",
+  "description": "Description goes here",
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "externally_connectable": {
+    "ids": [
+      "kcghjdbnjdaabfigmmjgmgiaehjidpoh"
+    ]
+  },
+  "options_page": "options.html",
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "./dist/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.example.com/*"
+      ],
+      "js": [
+        "./dist/auto.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://*.example.com/*"
+      ],
+      "js": [
+        "./dist/accounts.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://*.example.com/*"
+      ],
+      "js": [
+        "./dist/transactions.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://*.example.com/*"
+      ],
+      "js": [
+        "./dist/opening.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_popup": "options.html"
+  },
+  "manifest_version": 3
+}
