@@ -34,7 +34,7 @@ export function runOnContentChange(
 
     let callback = () => {
         let curUrl = window.location.href.split('?')[0];
-        if (curUrl.endsWith(urlPath)) {
+        if (curUrl.includes(urlPath)) {
             debugLog(window.location.href, 'matches (', urlPath, `) [debugName: "${debugName}"]`)
             func();
         } else {

@@ -59,7 +59,7 @@ chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, s
             "ffiii_api_base_url": msg.api_base_url,
         }).then(() => {
             chrome.permissions.getAll(async perms => {
-                if ((perms.origins?.filter(o => !o.includes(bankDomain)) || []).length > 0) {
+                if ((perms.origins?.filter(o => !o.includes(msg.api_base_url)) || []).length > 0) {
                     return;
                 } else {
                     chrome.runtime.openOptionsPage();

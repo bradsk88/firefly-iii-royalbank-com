@@ -154,6 +154,7 @@ runOnContentChange(
 runOnContentChange(
     txPage,
     enableAutoRun,
+    // TODO: Change this to an element that is on the page once transactions have loaded
     () => document.querySelector('app-root')!,
     'txAutoRun',
 );

@@ -26,7 +26,15 @@ export async function doListAccounts(
     return api.listAccount({
         // TODO: [Base Project] Handle lots of accounts (multiple pages)
     }).then(
-        (arr: AccountArray) => arr.data,
+        async (arr: AccountArray) => {
+            let results = arr.data;
+            if ((arr.meta.pagination?.total || 0) > results.length) {
+                // TODO: [Base Project] Handle lots of accounts (multiple pages)
+                const results2 = await api.listAccount({page: 2})
+                results = results.concat(results2.data);
+            }
+            return results;
+        },
     );
 }
 
