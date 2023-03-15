@@ -31,7 +31,7 @@ export function runOnURLMatch(
     func: () => void,
 ): void {
     let callback = (newURL: string) => {
-        if (newURL.endsWith(urlPath)) {
+        if (newURL.includes(urlPath)) {
             func();
         }
     };

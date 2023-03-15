@@ -15,9 +15,6 @@ import {isSingleAccountBank} from "../extensionid";
 import {backToAccountsPage} from "./auto_run/transactions";
 import {debugLog} from "./auto_run/debug";
 
-// TODO: You will need to update manifest.json so this file will be loaded on
-//  the correct URL.
-
 interface TransactionScrape {
     pageAccount: PageAccount;
     pageTransactions: TransactionStore[];
@@ -132,8 +129,7 @@ function enableAutoRun() {
     });
 }
 
-// TODO: Set this to your transactions page URL
-const txPage = 'accounts/main/details';
+const txPage = 'sgw1/olb/index-en/#/details;selectedAccount=';
 
 runOnURLMatch(txPage, () => pageAlreadyScraped = false);
 
@@ -154,6 +150,6 @@ runOnContentChange(
 runOnContentChange(
     txPage,
     enableAutoRun,
-    () => document.querySelector('app-root')!,
+    () => document.querySelector('div.cc-posted-transactions')!,
     'txAutoRun',
 );

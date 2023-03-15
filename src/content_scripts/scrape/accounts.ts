@@ -23,7 +23,7 @@ export function getAccountNumber(
     let accountNumText = accountElement.querySelector(
         "span.accounts-table__account-number"
     )!.textContent!;
-    return accountNumText.split("MasterCard")[1].split(" ").join("")
+    return accountNumText.split("MasterCard")[1].trim().split(" ")[-1]
 }
 
 export function getAccountName(
