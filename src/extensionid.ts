@@ -1,4 +1,4 @@
-export const debugAutoRun = true; // TODO: Set this to false once you've successfully implemented auto-run
+export const debugAutoRun = false;
 export const bankDomain = 'https://www1.royalbank.com';
 export const autoRunStartURL = 'https://www1.royalbank.com/sgw1/olb/index-en/#/summary';
 export const extensionPrimaryColorHex = 'fedf01';
