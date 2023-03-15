@@ -1,7 +1,7 @@
 {
-  "name": "My Firefly III OAuth2 Extension",
+  "name": "Royal Bank (Canada)",
   "version": "1.0",
-  "description": "Description goes here",
+  "description": "Scrapes account and transaction data from Royal Bank (RBC Canada) into Firefly III",
   "permissions": [
     "storage",
     "tabs"
@@ -22,7 +22,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://*.example.com/*"
+        "https://*.royalbank.com/*"
       ],
       "js": [
         "./dist/auto.js"
@@ -30,7 +30,7 @@
     },
     {
       "matches": [
-        "https://*.example.com/*"
+        "https://*.royalbank.com/*"
       ],
       "js": [
         "./dist/accounts.js"
@@ -38,7 +38,7 @@
     },
     {
       "matches": [
-        "https://*.example.com/*"
+        "https://*.royalbank.com/*"
       ],
       "js": [
         "./dist/transactions.js"
@@ -46,7 +46,7 @@
     },
     {
       "matches": [
-        "https://*.example.com/*"
+        "https://*.royalbank.com/*"
       ],
       "js": [
         "./dist/opening.js"

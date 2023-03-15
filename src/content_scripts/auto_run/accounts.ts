@@ -28,14 +28,13 @@ function findNextAccountElement(accountName: string): Element | undefined {
 function navigateToAccount(
     accountElement: Element,
 ): void {
-    // TODO: In order to scrape transactions, we need to navigate to
-    //  each account. This template assumes it's a button you can "click".
+    const clickLink: HTMLElement = accountElement.querySelector('a')!;
     if (debugAutoRun) {
         showDebug("Auto-run would click on the highlighted element. But debug mode is on." +
             "<br>Click it yourself to continue the auto-run procedure.");
-        debugHighlight((accountElement as HTMLElement));
+        debugHighlight(clickLink);
     } else {
-        (accountElement as HTMLElement)?.click()
+        clickLink?.click()
         setNavigating();
     }
 }

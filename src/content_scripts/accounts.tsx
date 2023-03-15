@@ -1,6 +1,7 @@
 import {
     AccountRoleProperty,
     AccountStore,
+    CreditCardType,
     ShortAccountTypeProperty
 } from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AutoRunState} from "../background/auto_state";
@@ -9,7 +10,8 @@ import {
     getAccountName,
     getAccountNumber,
     getButtonDestination,
-    getOpeningBalance, isPageReadyForScraping
+    getOpeningBalance,
+    isPageReadyForScraping
 } from "./scrape/accounts";
 import {openAccountForAutoRun} from "./auto_run/accounts";
 import {runOnURLMatch} from "../common/buttons";
@@ -36,21 +38,19 @@ async function scrapeAccountsFromPage(isAutoRun: boolean): Promise<AccountStore[
         const accountNumber = getAccountNumber(element)
         const accountName = getAccountName(element);
         const openingBalance = getOpeningBalance(element);
-        // TODO: Double-check these values. You may need to update them based
-        //  on the account element or bank.
         let openingBalanceBalance: string | undefined;
         if (openingBalance) {
-            openingBalanceBalance = `${openingBalance.balance}`;
+            openingBalanceBalance = `-${openingBalance.balance}`;
         }
         const as: AccountStore = {
-            // iban: "12345", // Not all banks have an IBAN
-            // bic: "123", // Not all banks have an BIC
             name: accountName,
             accountNumber: accountNumber,
             openingBalance: openingBalanceBalance,
             openingBalanceDate: openingBalance?.date,
             type: ShortAccountTypeProperty.Asset,
-            accountRole: AccountRoleProperty.DefaultAsset,
+            creditCardType: CreditCardType.MonthlyFull,
+            monthlyPaymentDate: new Date(2023, 1, 1),
+            accountRole: AccountRoleProperty.CcAsset,
             currencyCode: "CAD",
         };
         return as;
@@ -108,7 +108,7 @@ function enableAutoRun() {
     });
 }
 
-const accountsUrl = 'accounts/main/details'; // TODO: Set this to your accounts page URL
+const accountsUrl = 'sgw1/olb/index-en/#/summary';
 
 runOnURLMatch(accountsUrl, () => {
     pageAlreadyScraped = false;
