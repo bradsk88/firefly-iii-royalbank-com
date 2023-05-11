@@ -41,7 +41,7 @@ export function getRowAmount(r: Element, pageAccount: AccountRead): number {
     if (isRowLoading(r)) {
         throw new Error("Page is not ready for scraping")
     }
-    const debitDiv = r.childNodes[3];
+    const debitDiv = r.childNodes[2];
     const creditDiv = r.childNodes[5];
     if (debitDiv!.textContent) {
         return -priceFromString(debitDiv!.textContent!);
