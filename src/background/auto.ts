@@ -69,10 +69,6 @@ async function setAutoRunLastTx(accountName: string): Promise<void> {
     return chrome.storage.local.set({
         "ffiii_auto_run_last_transaction_account_name": accountName,
     })
-    // TODO: [Base Project] Indicate transaction progress in addition to autorun stages?
-    // chrome.runtime.sendMessage({
-    //     action: "update_auto_run_progress",
-    // })
 }
 
 export function getAutoRunLastTransaction(): Promise<string | undefined> {

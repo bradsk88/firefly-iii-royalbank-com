@@ -59,7 +59,7 @@ chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, s
             "ffiii_api_base_url": msg.api_base_url,
         }).then(() => {
             chrome.permissions.getAll(async perms => {
-                if ((perms.origins?.filter(o => o.includes(msg.api_base_url)) || []).length > 0) {
+                if ((perms.origins?.filter(o => !o.includes(msg.api_base_url)) || []).length > 0) {
                     return;
                 } else {
                     chrome.runtime.openOptionsPage();
@@ -70,7 +70,7 @@ chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, s
     if (msg.action === "request_auto_run") {
         chrome.permissions.getAll(async perms => {
             await setAutoRunState(AutoRunState.Accounts);
-            if ((perms.origins?.filter(o => o.includes(bankDomain)) || []).length > 0) {
+            if ((perms.origins?.filter(o => !o.includes(bankDomain)) || []).length > 0) {
                 await progressAutoRun();
             } else {
                 chrome.runtime.openOptionsPage();
@@ -91,19 +91,27 @@ chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, s
 
 
 async function storeAccounts(data: AccountStore[]) {
-    getBearerToken().then(token => doStoreAccounts(token, data))
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doStoreAccounts(bearer, baseURL, data);
 }
 
 async function storeTransactions(data: TransactionStore[]) {
-    getBearerToken().then(token => doStoreTransactions(token, data));
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doStoreTransactions(bearer, baseURL, data);
 }
 
 async function storeOpeningBalance(data: OpeningBalance) {
-    getBearerToken().then(token => doStoreOpeningBalance(token, data));
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doStoreOpeningBalance(bearer, baseURL, data);
 }
 
 export async function listAccounts(): Promise<AccountRead[]> {
-    return getBearerToken().then(token => doListAccounts(token));
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doListAccounts(bearer, baseURL);
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
