@@ -15,6 +15,7 @@ import {openAccountForAutoRun} from "./auto_run/accounts";
 import {runOnURLMatch} from "../common/buttons";
 import {runOnContentChange} from "../common/autorun";
 import {debugLog} from "./auto_run/debug";
+import {extensionBankName} from "../extensionid";
 
 let pageAlreadyScraped = false;
 export let navigating = false;
@@ -45,7 +46,7 @@ async function scrapeAccountsFromPage(isAutoRun: boolean): Promise<AccountStore[
         const as: AccountStore = {
             // iban: "12345", // Not all banks have an IBAN
             // bic: "123", // Not all banks have an BIC
-            name: accountName,
+            name: `${extensionBankName} - ${accountName}`,
             accountNumber: accountNumber,
             openingBalance: openingBalanceBalance,
             openingBalanceDate: openingBalance?.date,

@@ -91,19 +91,27 @@ chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, s
 
 
 async function storeAccounts(data: AccountStore[]) {
-    getBearerToken().then(token => doStoreAccounts(token, data))
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doStoreAccounts(bearer, baseURL, data);
 }
 
 async function storeTransactions(data: TransactionStore[]) {
-    getBearerToken().then(token => doStoreTransactions(token, data));
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doStoreTransactions(bearer, baseURL, data);
 }
 
 async function storeOpeningBalance(data: OpeningBalance) {
-    getBearerToken().then(token => doStoreOpeningBalance(token, data));
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doStoreOpeningBalance(bearer, baseURL, data);
 }
 
 export async function listAccounts(): Promise<AccountRead[]> {
-    return getBearerToken().then(token => doListAccounts(token));
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doListAccounts(bearer, baseURL);
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
