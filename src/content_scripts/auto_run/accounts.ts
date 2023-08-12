@@ -1,6 +1,6 @@
 import {AutoRunState} from "../../background/auto_state";
 import {getAccountElements, getAccountName, shouldSkipScrape} from "../scrape/accounts";
-import {debugAutoRun, isSingleAccountBank} from "../../extensionid";
+import {debugAutoRun, extensionBankName, isSingleAccountBank} from "../../extensionid";
 import {debugHighlight, showDebug} from "./debug";
 import {navigating, setNavigating} from "../accounts";
 
@@ -19,7 +19,9 @@ function findNextAccountElement(accountName: string): Element | undefined {
         if (foundScraped) {
             return button;
         }
-        if (getAccountName(button) === accountName) {
+        let scrapedName = getAccountName(button);
+        let scrapedWithPrefix = `${extensionBankName} - ${scrapedName}`;
+        if (scrapedName === accountName || scrapedWithPrefix === accountName) {
             foundScraped = true;
         }
     }
@@ -28,8 +30,6 @@ function findNextAccountElement(accountName: string): Element | undefined {
 function navigateToAccount(
     accountElement: Element,
 ): void {
-    // TODO: In order to scrape transactions, we need to navigate to
-    //  each account. This template assumes it's a button you can "click".
     if (debugAutoRun) {
         showDebug("Auto-run would click on the highlighted element. But debug mode is on." +
             "<br>Click it yourself to continue the auto-run procedure.");
