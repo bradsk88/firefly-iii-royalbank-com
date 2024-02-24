@@ -16,11 +16,12 @@ export function isPageReadyForScraping(): boolean {
 export function getAccountElements(): Element[] {
     // TODO: You'll almost certainly need to replace this with your own logic.
     //  This is grabbing the "rows" of accounts from the page.
-    const forms = document.querySelectorAll('form[action="/Transactions/History"]');
-    return Array.from(forms.values()).map(v => v.getElementsByTagName("button")[0]);
     //  If the bank presents a single page with a list of transactions right
     //  after the user logs in, try to return an element from the page which
     //  includes the account name and number.
+    return [document.querySelector(
+        '.header-main .text-right .dropdown .text-bold',
+    )!];
 }
 
 export function shouldSkipScrape(accountElement: Element): boolean {

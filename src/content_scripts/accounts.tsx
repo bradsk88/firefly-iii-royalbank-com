@@ -51,7 +51,7 @@ async function scrapeAccountsFromPage(isAutoRun: boolean): Promise<AccountStore[
             openingBalance: openingBalanceBalance,
             openingBalanceDate: openingBalance?.date,
             type: ShortAccountTypeProperty.Asset,
-            accountRole: AccountRoleProperty.DefaultAsset,
+            accountRole: AccountRoleProperty.CcAsset,
             // TODO: If you're building a scraper for a credit card, uncomment these
             // creditCardType: CreditCardType.MonthlyFull,
             // monthlyPaymentDate: new Date(2023, 1, 1),
