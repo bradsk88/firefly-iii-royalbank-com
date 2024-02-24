@@ -27,7 +27,7 @@ export function parseDate(dateStr: string): Date {
     // If scraped from different locations (e.g., Canada and UK), the resulting timestamps differ.
     // Canada's timestamp has midnight Central Time (6:00 UTC), while UK's has midnight GMT (0:00 UTC).
     // Consequently, Firefly's hash function produces distinct results, leading to duplicate transactions.
-    // TODO: Allow the user to choose their own "home UTC offset"
+    // TODO[Base]: Allow the user to choose their own "home UTC offset"
     date.setUTCHours(6);
     return date;
 }

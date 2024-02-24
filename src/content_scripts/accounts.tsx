@@ -52,6 +52,9 @@ async function scrapeAccountsFromPage(isAutoRun: boolean): Promise<AccountStore[
             openingBalanceDate: openingBalance?.date,
             type: ShortAccountTypeProperty.Asset,
             accountRole: AccountRoleProperty.DefaultAsset,
+            // TODO: If you're building a scraper for a credit card, uncomment these
+            // creditCardType: CreditCardType.MonthlyFull,
+            // monthlyPaymentDate: new Date(2023, 1, 1),
             currencyCode: "CAD",
         };
         return as;
@@ -99,12 +102,12 @@ function enableAutoRun() {
                     action: "complete_auto_run_state",
                     state: AutoRunState.Accounts,
                 }))
-                .then(() => openAccountForAutoRun())
+                .then(() => openAccountForAutoRun(state))
                 .catch(() => {
                     console.log('Error from account scrape. Will try again on next redraw')
                 });
         } else if (state === AutoRunState.Transactions) {
-            openAccountForAutoRun();
+            openAccountForAutoRun(state);
         }
     });
 }

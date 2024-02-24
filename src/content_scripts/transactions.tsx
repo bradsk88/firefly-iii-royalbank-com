@@ -11,9 +11,9 @@ import {PageAccount} from "../common/accounts";
 import {runOnURLMatch} from "../common/buttons";
 import {runOnContentChange} from "../common/autorun";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
-import {isSingleAccountBank} from "../extensionid";
+import {debugAutoRun, isSingleAccountBank} from "../extensionid";
 import {backToAccountsPage} from "./auto_run/transactions";
-import {debugLog} from "./auto_run/debug";
+import {debugLog, showDebug} from "./auto_run/debug";
 
 // TODO: You will need to update manifest.json so this file will be loaded on
 //  the correct URL.
@@ -32,31 +32,52 @@ export function scrapeTransactionsFromPage(
     pageAccount: AccountRead,
 ): TransactionStore[] {
     const rows = getRowElements();
-    return rows.map(r => {
+    return rows.map((r, idx) => {
         let tType = TransactionTypeProperty.Deposit;
         let srcId: string | undefined = undefined;
         let destId: string | undefined = pageAccount.id;
 
-        const amount = getRowAmount(r, pageAccount);
-        if (amount < 0) {
-            tType = TransactionTypeProperty.Withdrawal;
-            srcId = pageAccount.id;
-            destId = undefined;
-        }
 
-        return {
-            errorIfDuplicateHash: true,
-            applyRules: true,
-            transactions: [{
+        let returnVal;
+        try {
+            const amount = getRowAmount(r, pageAccount);
+            if (amount < 0) {
+                tType = TransactionTypeProperty.Withdrawal;
+                srcId = pageAccount.id;
+                destId = undefined;
+            }
+            let newTX = {
                 type: tType,
                 date: getRowDate(r),
                 amount: `${Math.abs(amount)}`,
                 description: getRowDesc(r),
                 destinationId: destId,
                 sourceId: srcId
-            }],
-        };
-    })
+            };
+            setTimeout(() => {
+                showDebug(
+                    "Scraped transactions, including row "
+                    + idx + ":\n" + JSON.stringify(newTX, undefined, '\t')
+                );
+            })
+            returnVal = {
+                errorIfDuplicateHash: true,
+                applyRules: true,
+                transactions: [newTX],
+            };
+        } catch (e: any) {
+            if (debugAutoRun) {
+                setTimeout(() => {
+                    showDebug(
+                        "Tried to scrape transaction, but encountered error on row "
+                        + idx + ":\n" + e.message,
+                    );
+                })
+            }
+            throw e;
+        }
+        return returnVal;
+    });
 }
 
 async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
@@ -70,13 +91,15 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
     const acct = await getCurrentPageAccount(accounts);
     const txs = scrapeTransactionsFromPage(acct);
     pageAlreadyScraped = true;
-    await chrome.runtime.sendMessage({
-            action: "store_transactions",
-            is_auto_run: isAutoRun,
-            value: txs,
-        },
-        () => {
-        });
+    if (!debugAutoRun) {
+        await chrome.runtime.sendMessage({
+                action: "store_transactions",
+                is_auto_run: isAutoRun,
+                value: txs,
+            },
+            () => {
+            });
+    }
     if (isSingleAccountBank) {
         await chrome.runtime.sendMessage({
             action: "complete_auto_run_state",

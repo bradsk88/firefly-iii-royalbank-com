@@ -18,6 +18,9 @@ export function getAccountElements(): Element[] {
     //  This is grabbing the "rows" of accounts from the page.
     const forms = document.querySelectorAll('form[action="/Transactions/History"]');
     return Array.from(forms.values()).map(v => v.getElementsByTagName("button")[0]);
+    //  If the bank presents a single page with a list of transactions right
+    //  after the user logs in, try to return an element from the page which
+    //  includes the account name and number.
 }
 
 export function shouldSkipScrape(accountElement: Element): boolean {

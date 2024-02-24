@@ -40,7 +40,20 @@ function navigateToAccount(
     }
 }
 
-export function openAccountForAutoRun() {
+export function openAccountForAutoRun(duringState: AutoRunState) {
+    if (isSingleAccountBank) {
+        if (duringState == AutoRunState.Transactions) {
+            return;
+        }
+        if (debugAutoRun) {
+            showDebug("Auto-run would reload the page. But debug mode is on." +
+                `<br><a href="${window.location.href}">Reload</a> it yourself to continue the auto-run procedure.`);
+        } else {
+            // Only one account no nav required. Proceed to next step by reloading.
+            window.open(window.location.href);
+        }
+        return;
+    }
     if (navigating) {
         return;
     }
