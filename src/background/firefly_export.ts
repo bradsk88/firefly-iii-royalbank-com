@@ -1,6 +1,13 @@
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
-import {AccountsApi, Configuration, TransactionsApi, TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {
+    AccountsApi,
+    Configuration,
+    TransactionArray,
+    TransactionsApi,
+    TransactionStore
+} from "firefly-iii-typescript-sdk-fetch";
 import {AccountArray, AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
+import {TransactionSplit} from "firefly-iii-typescript-sdk-fetch/dist/models/TransactionSplit";
 
 export interface OpeningBalance {
     accountNumber: string;
@@ -35,6 +42,33 @@ export async function doListAccounts(
                 results = results.concat(results2.data);
             }
             return results;
+        },
+    );
+}
+
+export async function doListTxs(
+    accountId: string,
+    token: string,
+    baseURL: string,
+): Promise<TransactionSplit[]> {
+    let api = new AccountsApi(
+        new Configuration({
+            basePath: baseURL,
+            accessToken: `Bearer ${token}`,
+            headers: {
+                "Content-Type": "application/json",
+                "accept": "application/vnd.api+json",
+            },
+            fetchApi: self.fetch.bind(self),
+        }),
+    );
+    return api.listTransactionByAccount({
+        id: accountId,
+    }).then(
+        async (arr: TransactionArray) => {
+            let results = arr.data;
+            // BASE: Pull more pages?
+            return results.map(v => v.attributes.transactions[0]);
         },
     );
 }

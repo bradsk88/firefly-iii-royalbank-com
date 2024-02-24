@@ -1,11 +1,13 @@
-import {TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
+import {TransactionSplitStore, TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
 import {AutoRunState} from "../background/auto_state";
 import {
     getButtonDestination,
     getCurrentPageAccount,
     getRowAmount,
-    getRowDate, getRowDesc,
-    getRowElements, isPageReadyForScraping
+    getRowDate,
+    getRowDesc,
+    getRowElements,
+    isPageReadyForScraping
 } from "./scrape/transactions";
 import {PageAccount} from "../common/accounts";
 import {runOnURLMatch} from "../common/buttons";
@@ -14,6 +16,7 @@ import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountR
 import {debugAutoRun, isSingleAccountBank} from "../extensionid";
 import {backToAccountsPage} from "./auto_run/transactions";
 import {debugLog, showDebug} from "./auto_run/debug";
+import {TransactionSplit} from "firefly-iii-typescript-sdk-fetch/dist/models/TransactionSplit";
 
 // TODO: You will need to update manifest.json so this file will be loaded on
 //  the correct URL.
@@ -25,12 +28,17 @@ interface TransactionScrape {
 
 let pageAlreadyScraped = false;
 
+export interface TSWP {
+    tx: TransactionStore,
+    row: Element,
+}
+
 /**
  * @param pageAccount The Firefly III account for the current page
  */
 export function scrapeTransactionsFromPage(
     pageAccount: AccountRead,
-): TransactionStore[] {
+): TSWP[] {
     const rows = getRowElements();
     return rows.map((r, idx) => {
         let tType = TransactionTypeProperty.Deposit;
@@ -50,7 +58,7 @@ export function scrapeTransactionsFromPage(
                 type: tType,
                 date: getRowDate(r),
                 amount: `${Math.abs(amount)}`,
-                description: getRowDesc(r),
+                description: getRowDesc(r)?.trim(),
                 destinationId: destId,
                 sourceId: srcId
             };
@@ -61,9 +69,12 @@ export function scrapeTransactionsFromPage(
                 );
             })
             returnVal = {
-                errorIfDuplicateHash: true,
-                applyRules: true,
-                transactions: [newTX],
+                tx: {
+                    errorIfDuplicateHash: true,
+                    applyRules: true,
+                    transactions: [newTX],
+                },
+                row: r,
             };
         } catch (e: any) {
             if (debugAutoRun) {
@@ -112,8 +123,40 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
             name: acct.attributes.name,
             id: acct.id,
         },
-        pageTransactions: txs,
+        pageTransactions: txs.map(v => v.tx),
     };
+}
+
+function isSame(remote: TransactionSplit, scraped: TransactionSplitStore) {
+    if (parseFloat(remote.amount) !== parseFloat(scraped.amount)) {
+        return false;
+    }
+    if (Date.parse(remote.date as any as string) !== Date.parse(scraped.date as any as string)) {
+        return false;
+    }
+    if (remote.description !== scraped.description) {
+        return false;
+    }
+    return true;
+}
+
+async function doScan(): Promise<void> {
+    const accounts = await chrome.runtime.sendMessage({
+        action: "list_accounts",
+    });
+    const acct = await getCurrentPageAccount(accounts);
+    const txs = scrapeTransactionsFromPage(acct);
+    pageAlreadyScraped = true;
+    const remoteTxs: TransactionSplit[] = await chrome.runtime.sendMessage({
+        action: "list_transactions",
+        value: acct.id,
+    });
+    txs.forEach(v => {
+        const scraped = v.tx.transactions[0];
+        if (remoteTxs.find(remote => isSame(remote, scraped))) {
+            (v.row as HTMLElement).style.background = 'rgba(230, 230, 255, 255)';
+        }
+    })
 }
 
 const buttonId = 'firefly-iii-export-transactions-button';
@@ -126,6 +169,14 @@ function addButton() {
     // TODO: Try to steal styling from the page to make this look good :)
     button.classList.add("some", "classes", "from", "the", "page");
     getButtonDestination().append(button);
+
+    const button2 = document.createElement("button");
+    button2.id = buttonId + "2";
+    button2.textContent = "Scan Transactions"
+    button2.addEventListener("click", async () => doScan(), false);
+    // TODO: Try to steal styling from the page to make this look good :)
+    button2.classList.add("some", "classes", "from", "the", "page");
+    getButtonDestination().append(button2);
 }
 
 function enableAutoRun() {

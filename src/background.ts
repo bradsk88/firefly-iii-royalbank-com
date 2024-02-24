@@ -1,10 +1,12 @@
 import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {TransactionSplit} from "firefly-iii-typescript-sdk-fetch/dist/models/TransactionSplit";
 import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 import {AutoRunState} from "./background/auto_state";
 import {doOauth, getApiBaseUrl, getBearerToken} from "./background/oauth";
 import {
     doListAccounts,
+    doListTxs,
     doStoreAccounts,
     doStoreOpeningBalance,
     doStoreTransactions,
@@ -114,6 +116,12 @@ export async function listAccounts(): Promise<AccountRead[]> {
     return doListAccounts(bearer, baseURL);
 }
 
+export async function listTxs(accountId: string): Promise<TransactionSplit[]> {
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doListTxs(accountId, bearer, baseURL);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('message', message);
 
@@ -143,6 +151,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 backgroundLog(`[error] ${error}`)
             });
         }).then(sendResponse)
+    } else if (message.action === "list_transactions") {
+        listTxs(message.value).then(sendResponse)
     } else if (message.action === "store_opening") {
         patchDatesOB(message.value).then(
             obStore => storeOpeningBalance(obStore),
