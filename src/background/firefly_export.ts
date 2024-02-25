@@ -2,7 +2,7 @@ import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountR
 import {
     AccountsApi,
     Configuration,
-    TransactionArray,
+    TransactionArray, TransactionRead,
     TransactionsApi,
     TransactionStore
 } from "firefly-iii-typescript-sdk-fetch";
@@ -50,7 +50,7 @@ export async function doListTxs(
     accountId: string,
     token: string,
     baseURL: string,
-): Promise<TransactionSplit[]> {
+): Promise<TransactionRead[]> {
     let api = new AccountsApi(
         new Configuration({
             basePath: baseURL,
@@ -65,11 +65,7 @@ export async function doListTxs(
     return api.listTransactionByAccount({
         id: accountId,
     }).then(
-        async (arr: TransactionArray) => {
-            let results = arr.data;
-            // BASE: Pull more pages?
-            return results.map(v => v.attributes.transactions[0]);
-        },
+        async (arr: TransactionArray) => arr.data,
     );
 }
 

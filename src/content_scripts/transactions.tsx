@@ -1,4 +1,9 @@
-import {TransactionSplitStore, TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
+import {
+    TransactionRead,
+    TransactionSplitStore,
+    TransactionStore,
+    TransactionTypeProperty
+} from "firefly-iii-typescript-sdk-fetch";
 import {AutoRunState} from "../background/auto_state";
 import {
     getButtonDestination,
@@ -17,6 +22,7 @@ import {debugAutoRun, isSingleAccountBank} from "../extensionid";
 import {backToAccountsPage} from "./auto_run/transactions";
 import {debugLog, showDebug} from "./auto_run/debug";
 import {TransactionSplit} from "firefly-iii-typescript-sdk-fetch/dist/models/TransactionSplit";
+import {FireflyTransactionUIAdder, MetaTx} from "./scan/transactions";
 
 // TODO: You will need to update manifest.json so this file will be loaded on
 //  the correct URL.
@@ -127,14 +133,15 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
     };
 }
 
-function isSame(remote: TransactionSplit, scraped: TransactionSplitStore) {
-    if (parseFloat(remote.amount) !== parseFloat(scraped.amount)) {
+function isSame(remote: TransactionRead, scraped: TransactionSplitStore) {
+    let tx = remote.attributes.transactions[0];
+    if (parseFloat(tx.amount) !== parseFloat(scraped.amount)) {
         return false;
     }
-    if (Date.parse(remote.date as any as string) !== Date.parse(scraped.date as any as string)) {
+    if (Date.parse(tx.date as any as string) !== Date.parse(scraped.date as any as string)) {
         return false;
     }
-    if (remote.description !== scraped.description) {
+    if (tx.description !== scraped.description) {
         return false;
     }
     return true;
@@ -147,16 +154,36 @@ async function doScan(): Promise<void> {
     const acct = await getCurrentPageAccount(accounts);
     const txs = scrapeTransactionsFromPage(acct);
     pageAlreadyScraped = true;
-    const remoteTxs: TransactionSplit[] = await chrome.runtime.sendMessage({
+    let remoteTxs: TransactionRead[] = await chrome.runtime.sendMessage({
         action: "list_transactions",
         value: acct.id,
     });
-    txs.forEach(v => {
+    const adder = new FireflyTransactionUIAdder(acct.id);
+    for (let i = 0; i < txs.length; i++) {
+        const v = txs[i];
         const scraped = v.tx.transactions[0];
-        if (remoteTxs.find(remote => isSame(remote, scraped))) {
-            (v.row as HTMLElement).style.background = 'rgba(230, 230, 255, 255)';
+        let metaTx = {
+            tx: scraped,
+            txRow: v.row as HTMLElement,
+            prevRow: txs[i-1]?.row as HTMLElement,
+            nextRow: txs[i+1]?.row as HTMLElement,
+        } as MetaTx;
+        let remoteMatches = remoteTxs.filter(remote => isSame(remote, scraped));
+        if (remoteMatches.length > 1) {
+            adder.registerDuplicates(metaTx, remoteMatches.slice(1));
         }
-    })
+        if (remoteMatches.length >= 1) {
+            adder.registerSynced(metaTx);
+            remoteTxs = remoteTxs.filter(v => !remoteMatches.includes(v));
+        } else {
+            adder.registerLocalOnly(metaTx)
+        }
+    }
+    remoteTxs.map(v => ({
+        tx: v.attributes.transactions[0],
+        nextRow: txs[0].row as HTMLElement,
+    } as MetaTx)).forEach(v => adder.registerRemoteOnly(v));
+    adder.processAll();
 }
 
 const buttonId = 'firefly-iii-export-transactions-button';

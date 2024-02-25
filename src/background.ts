@@ -1,4 +1,4 @@
-import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {TransactionRead, TransactionStore} from "firefly-iii-typescript-sdk-fetch";
 import {TransactionSplit} from "firefly-iii-typescript-sdk-fetch/dist/models/TransactionSplit";
 import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
@@ -116,7 +116,7 @@ export async function listAccounts(): Promise<AccountRead[]> {
     return doListAccounts(bearer, baseURL);
 }
 
-export async function listTxs(accountId: string): Promise<TransactionSplit[]> {
+export async function listTxs(accountId: string): Promise<TransactionRead[]> {
     const bearer = await getBearerToken();
     const baseURL = await getApiBaseUrl();
     return doListTxs(accountId, bearer, baseURL);
