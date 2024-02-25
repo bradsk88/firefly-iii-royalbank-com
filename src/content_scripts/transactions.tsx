@@ -21,7 +21,6 @@ import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountR
 import {debugAutoRun, isSingleAccountBank} from "../extensionid";
 import {backToAccountsPage} from "./auto_run/transactions";
 import {debugLog, showDebug} from "./auto_run/debug";
-import {TransactionSplit} from "firefly-iii-typescript-sdk-fetch/dist/models/TransactionSplit";
 import {FireflyTransactionUIAdder, MetaTx} from "./scan/transactions";
 
 // TODO: You will need to update manifest.json so this file will be loaded on
@@ -179,7 +178,9 @@ async function doScan(): Promise<void> {
             adder.registerLocalOnly(metaTx)
         }
     }
-    remoteTxs.map(v => ({
+    remoteTxs
+        .filter(v => new Date(v.attributes.transactions[0].date) > txs[txs.length - 1].tx.transactions[0].date)
+        .map(v => ({
         tx: v.attributes.transactions[0],
         nextRow: txs[0].row as HTMLElement,
     } as MetaTx)).forEach(v => adder.registerRemoteOnly(v));

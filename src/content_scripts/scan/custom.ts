@@ -25,6 +25,7 @@ export function createRowWithButtonForRemoteOnlyTx(
         date: Date, description: string, amount: string,
     },
     syncToRemote: () => void,
+    defaultBgCss: string,
     prevRow?: HTMLElement,
     nextRow?: HTMLElement,
 ) {
@@ -36,13 +37,42 @@ export function createRowWithButtonForRemoteOnlyTx(
     node.innerText = 'Delete from Firefly III';
     node.onclick = syncToRemote;
     if (prevRow) {
-        // FIXME: Create fake rows
-        // FIXME: Why are there so many of these?
         const copy = prevRow.cloneNode(true) as HTMLElement;
         copy.textContent = tx.description;
         copy.append(node);
         prevRow.append(copy);
     } else {
-        nextRow?.prepend(node);
+        const el = document.createElement("article");
+        el.style.background = defaultBgCss;
+        const outer = document.createElement('div');
+        outer.classList.add('grid', 'list-item');
+        const inner = document.createElement('div');
+        inner.classList.add('col-c-60');
+        const date = document.createElement('div');
+        date.classList.add('text-muted', 'text-uppercase');
+        date.textContent = `${tx.date} (Found on server but not on bank site)`;
+        const desc = document.createElement('span');
+        desc.classList.add('text-highlight', 'text-bold');
+        desc.textContent = `${tx.description}`;
+        inner.append(date, desc);
+        outer.append(inner);
+
+        const inner2 = document.createElement('div');
+        inner2.classList.add('col-c-40', 'text-right', 'truncate');
+
+        const amount = document.createElement('div');
+        amount.classList.add('text-bold');
+        amount.innerText = `$${parseFloat(tx.amount).toFixed(2)}`;
+        inner2.append(amount);
+
+        const btn = document.createElement('button');
+        btn.addEventListener('click', syncToRemote);
+        btn.innerText = 'Delete';
+        inner2.append(btn);
+
+        outer.append(inner2);
+
+        el.append(outer);
+        nextRow?.parentElement?.prepend(el);
     }
 }

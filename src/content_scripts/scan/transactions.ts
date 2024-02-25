@@ -66,13 +66,15 @@ export class FireflyTransactionUIAdder {
             ),
         );
         this.remoteOnly.forEach(row => createRowWithButtonForRemoteOnlyTx(
-            row.tx,
-            () => this.deleteFromRemote(row.tx.remoteId!), row.prevRow, row.nextRow),
+                row.tx,
+                () => this.deleteFromRemote(row.tx.remoteId!),
+                'rgba(255, 152, 0, 255)',
+                row.prevRow, row.nextRow
+            ),
         )
     }
 
     private storeTx(row: MetaTx) {
-        // FIXME: This doesn't seem to be doing anything?
         let tType = TransactionTypeProperty.Deposit;
         let srcId: string | undefined = undefined;
         let destId: string | undefined = this.accountNo;
@@ -84,7 +86,7 @@ export class FireflyTransactionUIAdder {
         chrome.runtime.sendMessage({
                 action: "store_transactions",
                 is_auto_run: false,
-                value: {
+                value: [{
                     applyRules: true,
                     errorIfDuplicateHash: true,
                     transactions: [{
@@ -95,13 +97,13 @@ export class FireflyTransactionUIAdder {
                         sourceId: srcId,
                         destinationId: destId,
                     } as TransactionSplitStore]
-                } as TransactionStore,
+                } as TransactionStore],
             },
             () => {
             });
     }
 
     private deleteFromRemote(remoteId: string) {
-
+        //FIXME: Implement
     }
 }
