@@ -88,7 +88,7 @@ export class FireflyTransactionUIAdder {
         this.remoteOnly.forEach(row => createRowWithButtonForRemoteOnlyTx(
                 row.tx,
                 () => this.deleteFromRemote(row.tx.remoteId!),
-                'rgba(255, 152, 0, 255)',
+                'rgba(255, 220, 168, 255)',
                 row.prevRow, row.nextRow
             ),
         )
