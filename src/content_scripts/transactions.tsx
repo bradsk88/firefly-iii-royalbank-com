@@ -177,10 +177,15 @@ async function doScan(): Promise<void> {
     }
     remoteTxs
         .filter(v => new Date(v.attributes.transactions[0].date) > txs[txs.length - 1].tx.transactions[0].date)
-        .map(v => ({
-        tx: v.attributes.transactions[0],
-        nextRow: txs[0].row as HTMLElement,
-    } as MetaTx)).forEach(v => adder.registerRemoteOnly(v));
+        .map(v => {
+            // TODO: Also factor in similarity of description (for the case where there are multiple Txs with the same date)
+            let prevRow = Array.from(txs).reverse().find(x => new Date(x.tx.transactions[0].date) >= new Date(v.attributes.transactions[0].date));
+            return ({
+                tx: {...v.attributes.transactions[0], remoteId: v.id},
+                prevRow: prevRow ? prevRow?.row as HTMLElement : undefined,
+                nextRow: prevRow ? undefined : txs[0].row as HTMLElement,
+            } as MetaTx);
+        }).forEach(v => adder.registerRemoteOnly(v));
     adder.processAll();
 }
 

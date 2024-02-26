@@ -117,6 +117,28 @@ export function doStoreTransactions(
     }));
 }
 
+export function doDeleteTransaction(
+    token: string,
+    baseURL: string,
+    txID: string,
+) {
+    let api = new TransactionsApi(
+        new Configuration({
+            basePath: baseURL,
+            accessToken: `Bearer ${token}`,
+            headers: {
+                "Content-Type": "application/json",
+                "accept": "application/vnd.api+json",
+            },
+            fetchApi: self.fetch.bind(self),
+        }),
+    );
+    console.log('deleting tx', txID);
+    api.deleteTransaction({id: txID}).catch(
+        e => console.error('failed to delete via SDK', e)
+    );
+}
+
 export function doStoreAccounts(
     token: string,
     baseURL: string,

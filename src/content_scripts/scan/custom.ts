@@ -20,6 +20,7 @@ export function applyStylingAndAddButtonForLocalOnlyRow(
     node.style.display = "block";
     node.style.height = "100%";
     node.style.width = "100%";
+    node.classList.add("added-by-firefly-iii-scan");
 
     let container: HTMLElement = row.querySelector('td:nth-last-child(2)')!;
     container.style.height = "40px"; // Seems this can be any value
@@ -31,7 +32,7 @@ export function buildRowForRemoteOnlyTx(defaultBgCss: string, tx: {
     date: Date;
     description: string;
     amount: string
-}, btn: HTMLButtonElement): HTMLElement {
+}, btnFn: (removeElementOnSuccess: HTMLElement) => HTMLButtonElement): HTMLElement {
     // TODO: Build a row that will be inserted into the page so the user can
     //  see transactions that only exist on the remote server - this allows
     //  users to correct data that was mis-scraped or added accidentally.
@@ -47,6 +48,7 @@ export function buildRowForRemoteOnlyTx(defaultBgCss: string, tx: {
     amount.innerText = `$${parseFloat(tx.amount).toFixed(2)}`;
     amount.classList.add('rbc-transaction-list-withdraw');
 
+    const btn = btnFn(el);
     btn.style.margin = "0 auto";
     btn.style.display = "block";
     btn.style.height = "100%";
@@ -58,5 +60,6 @@ export function buildRowForRemoteOnlyTx(defaultBgCss: string, tx: {
 
     btnCol.append(btn);
     el.append(date, desc, amount, btnCol, document.createElement('td'));
+    el.classList.add("added-by-firefly-iii-scan");
     return el;
 }

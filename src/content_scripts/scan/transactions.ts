@@ -27,14 +27,21 @@ export function createRowWithButtonForRemoteOnlyTx(
     // This adds a new row element to indicate that the data was only found on
     // the remote server and is missing from the local page. It also adds a
     // button to delete the data to the remote server.
-    const btn = document.createElement('button');
-    btn.addEventListener('click', syncToRemote);
-    btn.innerText = 'Delete from Firefly III';
+    const btnFn = (elementToRemoveOnSuccess: HTMLElement) => {
+        const btn = document.createElement('button');
+        btn.addEventListener('click', () => {
+            syncToRemote();
+            // BASE: Actually wait for success
+            elementToRemoveOnSuccess.remove();
+        });
+        btn.innerText = 'Delete from Firefly III';
+        return btn;
+    }
     if (prevRow) {
-        const el = buildRowForRemoteOnlyTx(defaultBgCss, tx, btn);
-        prevRow?.parentElement?.append(el);
+        const el = buildRowForRemoteOnlyTx(defaultBgCss, tx, btnFn);
+        prevRow?.parentElement?.insertBefore(el, prevRow);
     } else {
-        const el = buildRowForRemoteOnlyTx(defaultBgCss, tx, btn);
+        const el = buildRowForRemoteOnlyTx(defaultBgCss, tx, btnFn);
         nextRow?.parentElement?.prepend(el);
     }
 }
@@ -73,6 +80,7 @@ export class FireflyTransactionUIAdder {
     }
 
     processAll() {
+        document.querySelectorAll(".added-by-firefly-iii-scan").forEach(v => v.remove());
         const param = {
             bgCssForRemoteOnly: 'rgba(255, 152, 0, 255)',
             bgCssForDuplicates: 'rgba(244, 67, 54, 255)',
@@ -124,6 +132,9 @@ export class FireflyTransactionUIAdder {
     }
 
     private deleteFromRemote(remoteId: string) {
-        //FIXME: Implement
+        chrome.runtime.sendMessage({
+            action: "delete_transaction",
+            value: remoteId,
+        }).catch(e => console.error("Failed to delete transaction", e));
     }
 }
