@@ -2,12 +2,12 @@ import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountR
 import {
     AccountsApi,
     Configuration,
-    TransactionArray, TransactionRead,
+    TransactionArray,
+    TransactionRead,
     TransactionsApi,
     TransactionStore
 } from "firefly-iii-typescript-sdk-fetch";
 import {AccountArray, AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
-import {TransactionSplit} from "firefly-iii-typescript-sdk-fetch/dist/models/TransactionSplit";
 
 export interface OpeningBalance {
     accountNumber: string;

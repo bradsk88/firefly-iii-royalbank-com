@@ -1,5 +1,4 @@
 import {TransactionRead, TransactionStore} from "firefly-iii-typescript-sdk-fetch";
-import {TransactionSplit} from "firefly-iii-typescript-sdk-fetch/dist/models/TransactionSplit";
 import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 import {AutoRunState} from "./background/auto_state";

@@ -1,8 +1,4 @@
-import {
-    applyStylingAndAddButtonForLocalOnlyRow,
-    applyStylingToFoundRow,
-    createRowWithButtonForRemoteOnlyTx
-} from "./custom";
+import {applyStylingAndAddButtonForLocalOnlyRow, applyStylingToFoundRow, buildRowForRemoteOnlyTx} from "./custom";
 import {
     TransactionRead,
     TransactionSplitStore,
@@ -17,6 +13,30 @@ export interface MetaTx {
     txRow?: HTMLElement
     prevRow?: HTMLElement,
     nextRow?: HTMLElement,
+}
+
+export function createRowWithButtonForRemoteOnlyTx(
+    tx: {
+        date: Date, description: string, amount: string,
+    },
+    syncToRemote: () => void,
+    defaultBgCss: string,
+    prevRow?: HTMLElement,
+    nextRow?: HTMLElement,
+) {
+    // This adds a new row element to indicate that the data was only found on
+    // the remote server and is missing from the local page. It also adds a
+    // button to delete the data to the remote server.
+    const btn = document.createElement('button');
+    btn.addEventListener('click', syncToRemote);
+    btn.innerText = 'Delete';
+    if (prevRow) {
+        const el = buildRowForRemoteOnlyTx(defaultBgCss, tx, btn);
+        prevRow?.parentElement?.append(el);
+    } else {
+        const el = buildRowForRemoteOnlyTx(defaultBgCss, tx, btn);
+        nextRow?.parentElement?.prepend(el);
+    }
 }
 
 export class FireflyTransactionUIAdder {
