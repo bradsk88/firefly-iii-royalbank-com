@@ -17,6 +17,7 @@ export function applyStylingAndAddButtonForLocalOnlyRow(
     let node = document.createElement("button");
     node.innerText = 'Sync to Firefly III';
     node.onclick = syncToRemote;
+    node.classList.add("added-by-firefly-iii-scan");
     row.appendChild(node);
 }
 
@@ -24,12 +25,14 @@ export function buildRowForRemoteOnlyTx(defaultBgCss: string, tx: {
     date: Date;
     description: string;
     amount: string
-}, btn: HTMLButtonElement): HTMLElement {
+}, btnFn: (removeElementOnSuccess: HTMLElement) => HTMLButtonElement): HTMLElement {
     // TODO: Build a row that will be inserted into the page so the user can
     //  see transactions that only exist on the remote server - this allows
     //  users to correct data that was mis-scraped or added accidentally.
     const el = document.createElement("div");
     el.style.background = defaultBgCss;
     el.innerText = `An unexpected transaction was found on the server: ${tx.amount} on ${tx.date}`;
+    el.append(btnFn(el));
+    el.classList.add("added-by-firefly-iii-scan");
     return el;
 }
