@@ -1,19 +1,27 @@
-import {TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
+import {
+    TransactionRead,
+    TransactionSplitStore,
+    TransactionStore,
+    TransactionTypeProperty
+} from "firefly-iii-typescript-sdk-fetch";
 import {AutoRunState} from "../background/auto_state";
 import {
     getButtonDestination,
     getCurrentPageAccount,
     getRowAmount,
-    getRowDate, getRowDesc,
-    getRowElements, isPageReadyForScraping
+    getRowDate,
+    getRowDesc,
+    getRowElements,
+    isPageReadyForScraping
 } from "./scrape/transactions";
 import {PageAccount} from "../common/accounts";
 import {runOnURLMatch} from "../common/buttons";
 import {runOnContentChange} from "../common/autorun";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
-import {isSingleAccountBank} from "../extensionid";
+import {debugAutoRun, isSingleAccountBank} from "../extensionid";
 import {backToAccountsPage} from "./auto_run/transactions";
-import {debugLog} from "./auto_run/debug";
+import {debugLog, showDebug} from "./auto_run/debug";
+import {FireflyTransactionUIAdder, MetaTx} from "./scan/transactions";
 
 interface TransactionScrape {
     pageAccount: PageAccount;
@@ -22,37 +30,67 @@ interface TransactionScrape {
 
 let pageAlreadyScraped = false;
 
+export interface TSWP {
+    tx: TransactionStore,
+    row: Element,
+}
+
 /**
  * @param pageAccount The Firefly III account for the current page
  */
 export function scrapeTransactionsFromPage(
     pageAccount: AccountRead,
-): TransactionStore[] {
+): TSWP[] {
     const rows = getRowElements();
-    return rows.map(r => {
+    return rows.map((r, idx) => {
         let tType = TransactionTypeProperty.Deposit;
         let srcId: string | undefined = undefined;
         let destId: string | undefined = pageAccount.id;
 
-        const amount = getRowAmount(r, pageAccount);
-        if (amount < 0) {
-            tType = TransactionTypeProperty.Withdrawal;
-            srcId = pageAccount.id;
-            destId = undefined;
-        }
 
-        return {
-            errorIfDuplicateHash: true,
-            transactions: [{
+        let returnVal;
+        try {
+            const amount = getRowAmount(r, pageAccount);
+            if (amount < 0) {
+                tType = TransactionTypeProperty.Withdrawal;
+                srcId = pageAccount.id;
+                destId = undefined;
+            }
+            let newTX = {
                 type: tType,
                 date: getRowDate(r),
                 amount: `${Math.abs(amount)}`,
-                description: getRowDesc(r),
+                description: getRowDesc(r)?.trim(),
                 destinationId: destId,
                 sourceId: srcId
-            }],
-        };
-    })
+            };
+            setTimeout(() => {
+                showDebug(
+                    "Scraped transactions, including row "
+                    + idx + ":\n" + JSON.stringify(newTX, undefined, '\t')
+                );
+            })
+            returnVal = {
+                tx: {
+                    errorIfDuplicateHash: true,
+                    applyRules: true,
+                    transactions: [newTX],
+                },
+                row: r,
+            };
+        } catch (e: any) {
+            if (debugAutoRun) {
+                setTimeout(() => {
+                    showDebug(
+                        "Tried to scrape transaction, but encountered error on row "
+                        + idx + ":\n" + e.message,
+                    );
+                })
+            }
+            throw e;
+        }
+        return returnVal;
+    });
 }
 
 async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
@@ -66,13 +104,15 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
     const acct = await getCurrentPageAccount(accounts);
     const txs = scrapeTransactionsFromPage(acct);
     pageAlreadyScraped = true;
-    await chrome.runtime.sendMessage({
-            action: "store_transactions",
-            is_auto_run: isAutoRun,
-            value: txs,
-        },
-        () => {
-        });
+    if (!debugAutoRun) {
+        await chrome.runtime.sendMessage({
+                action: "store_transactions",
+                is_auto_run: isAutoRun,
+                value: txs,
+            },
+            () => {
+            });
+    }
     if (isSingleAccountBank) {
         await chrome.runtime.sendMessage({
             action: "complete_auto_run_state",
@@ -85,8 +125,63 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
             name: acct.attributes.name,
             id: acct.id,
         },
-        pageTransactions: txs,
+        pageTransactions: txs.map(v => v.tx),
     };
+}
+
+function isSame(remote: TransactionRead, scraped: TransactionSplitStore) {
+    let tx = remote.attributes.transactions[0];
+    if (parseFloat(tx.amount) !== parseFloat(scraped.amount)) {
+        return false;
+    }
+    if (Date.parse(tx.date as any as string) !== Date.parse(scraped.date as any as string)) {
+        return false;
+    }
+    if (tx.description !== scraped.description) {
+        return false;
+    }
+    return true;
+}
+
+async function doScan(): Promise<void> {
+    const accounts = await chrome.runtime.sendMessage({
+        action: "list_accounts",
+    });
+    const acct = await getCurrentPageAccount(accounts);
+    const txs = scrapeTransactionsFromPage(acct);
+    pageAlreadyScraped = true;
+    let remoteTxs: TransactionRead[] = await chrome.runtime.sendMessage({
+        action: "list_transactions",
+        value: acct.id,
+    });
+    const adder = new FireflyTransactionUIAdder(acct.id);
+    for (let i = 0; i < txs.length; i++) {
+        const v = txs[i];
+        const scraped = v.tx.transactions[0];
+        let metaTx = {
+            tx: scraped,
+            txRow: v.row as HTMLElement,
+            prevRow: txs[i-1]?.row as HTMLElement,
+            nextRow: txs[i+1]?.row as HTMLElement,
+        } as MetaTx;
+        let remoteMatches = remoteTxs.filter(remote => isSame(remote, scraped));
+        if (remoteMatches.length > 1) {
+            adder.registerDuplicates(metaTx, remoteMatches.slice(1));
+        }
+        if (remoteMatches.length >= 1) {
+            adder.registerSynced(metaTx);
+            remoteTxs = remoteTxs.filter(v => !remoteMatches.includes(v));
+        } else {
+            adder.registerLocalOnly(metaTx)
+        }
+    }
+    remoteTxs
+        .filter(v => new Date(v.attributes.transactions[0].date) > txs[txs.length - 1].tx.transactions[0].date)
+        .map(v => ({
+        tx: v.attributes.transactions[0],
+        nextRow: txs[0].row as HTMLElement,
+    } as MetaTx)).forEach(v => adder.registerRemoteOnly(v));
+    adder.processAll();
 }
 
 const buttonId = 'firefly-iii-export-transactions-button';
@@ -99,6 +194,14 @@ function addButton() {
     // TODO: Try to steal styling from the page to make this look good :)
     button.classList.add("some", "classes", "from", "the", "page");
     getButtonDestination().append(button);
+
+    const button2 = document.createElement("button");
+    button2.id = buttonId + "2";
+    button2.textContent = "Scan Transactions"
+    button2.addEventListener("click", async () => doScan(), false);
+    // TODO: Try to steal styling from the page to make this look good :)
+    button2.classList.add("some", "classes", "from", "the", "page");
+    getButtonDestination().append(button2);
 }
 
 function enableAutoRun() {

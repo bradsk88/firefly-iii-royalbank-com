@@ -99,12 +99,12 @@ function enableAutoRun() {
                     action: "complete_auto_run_state",
                     state: AutoRunState.Accounts,
                 }))
-                .then(() => openAccountForAutoRun())
+                .then(() => openAccountForAutoRun(state))
                 .catch(() => {
                     console.log('Error from account scrape. Will try again on next redraw')
                 });
         } else if (state === AutoRunState.Transactions) {
-            openAccountForAutoRun();
+            openAccountForAutoRun(state);
         }
     });
 }

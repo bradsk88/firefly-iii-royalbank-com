@@ -1,6 +1,6 @@
 import {AutoRunState} from "../../background/auto_state";
 import {getAccountElements, getAccountName, shouldSkipScrape} from "../scrape/accounts";
-import {debugAutoRun, isSingleAccountBank} from "../../extensionid";
+import {debugAutoRun, extensionBankName, isSingleAccountBank} from "../../extensionid";
 import {debugHighlight, showDebug} from "./debug";
 import {navigating, setNavigating} from "../accounts";
 
@@ -19,7 +19,9 @@ function findNextAccountElement(accountName: string): Element | undefined {
         if (foundScraped) {
             return button;
         }
-        if (getAccountName(button) === accountName) {
+        let scrapedName = getAccountName(button);
+        let scrapedWithPrefix = `${extensionBankName} - ${scrapedName}`;
+        if (scrapedName === accountName || scrapedWithPrefix === accountName) {
             foundScraped = true;
         }
     }
@@ -39,7 +41,20 @@ function navigateToAccount(
     }
 }
 
-export function openAccountForAutoRun() {
+export function openAccountForAutoRun(duringState: AutoRunState) {
+    if (isSingleAccountBank) {
+        if (duringState == AutoRunState.Transactions) {
+            return;
+        }
+        if (debugAutoRun) {
+            showDebug("Auto-run would reload the page. But debug mode is on." +
+                `<br><a href="${window.location.href}">Reload</a> it yourself to continue the auto-run procedure.`);
+        } else {
+            // Only one account no nav required. Proceed to next step by reloading.
+            window.open(window.location.href);
+        }
+        return;
+    }
     if (navigating) {
         return;
     }

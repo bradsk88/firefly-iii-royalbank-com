@@ -5,7 +5,6 @@ export function getButtonDestination(): Element {
 }
 
 export function isPageReadyForScraping(): boolean {
-    // TODO: Confirm page load is instant
     return true;
 }
 

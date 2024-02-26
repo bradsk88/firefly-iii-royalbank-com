@@ -1,10 +1,11 @@
-import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {TransactionRead, TransactionStore} from "firefly-iii-typescript-sdk-fetch";
 import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 import {AutoRunState} from "./background/auto_state";
 import {doOauth, getApiBaseUrl, getBearerToken} from "./background/oauth";
 import {
     doListAccounts,
+    doListTxs,
     doStoreAccounts,
     doStoreOpeningBalance,
     doStoreTransactions,
@@ -59,7 +60,7 @@ chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, s
             "ffiii_api_base_url": msg.api_base_url,
         }).then(() => {
             chrome.permissions.getAll(async perms => {
-                if ((perms.origins?.filter(o => !o.includes(msg.api_base_url)) || []).length > 0) {
+                if ((perms.origins?.filter(o => !o.includes(bankDomain)) || []).length > 0) {
                     return;
                 } else {
                     chrome.runtime.openOptionsPage();
@@ -114,6 +115,12 @@ export async function listAccounts(): Promise<AccountRead[]> {
     return doListAccounts(bearer, baseURL);
 }
 
+export async function listTxs(accountId: string): Promise<TransactionRead[]> {
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doListTxs(accountId, bearer, baseURL);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('message', message);
 
@@ -143,6 +150,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 backgroundLog(`[error] ${error}`)
             });
         }).then(sendResponse)
+    } else if (message.action === "list_transactions") {
+        listTxs(message.value).then(sendResponse)
     } else if (message.action === "store_opening") {
         patchDatesOB(message.value).then(
             obStore => storeOpeningBalance(obStore),
