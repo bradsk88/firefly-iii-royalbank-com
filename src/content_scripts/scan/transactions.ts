@@ -29,7 +29,7 @@ export function createRowWithButtonForRemoteOnlyTx(
     // button to delete the data to the remote server.
     const btn = document.createElement('button');
     btn.addEventListener('click', syncToRemote);
-    btn.innerText = 'Delete';
+    btn.innerText = 'Delete from Firefly III';
     if (prevRow) {
         const el = buildRowForRemoteOnlyTx(defaultBgCss, tx, btn);
         prevRow?.parentElement?.append(el);
