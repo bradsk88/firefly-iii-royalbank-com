@@ -256,3 +256,12 @@ runOnContentChange(
     () => document.querySelector('div.cc-posted-transactions')!,
     'txAutoRun',
 );
+
+
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.action !== "content.scan_transactions") {
+        return false;
+    }
+    setTimeout(async () => doScan());
+    return true;
+})

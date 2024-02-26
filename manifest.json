@@ -4,7 +4,8 @@
   "description": "Scrapes account and transaction data from Royal Bank (RBC Canada) into Firefly III",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "contextMenus"
   ],
   "externally_connectable": {
     "ids": [
@@ -55,9 +56,6 @@
   ],
   "action": {
     "default_popup": "options.html"
-  },
-  "icons": {
-    "128": "icon.png"
   },
   "manifest_version": 3
 }

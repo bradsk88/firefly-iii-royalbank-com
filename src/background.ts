@@ -46,6 +46,25 @@ function registerSelfWithHubExtension() {
     })
 }
 
+// Add a listener to create the initial context menu items,
+// context menu items only need to be created at runtime.onInstalled
+chrome.runtime.onInstalled.addListener(async () => {
+    chrome.contextMenus.create({
+        id: `ffiii-scan`,
+        title: "Scan Transactions",
+        contexts: ["all"],
+    });
+    console.log('Context menu registered')
+});
+
+chrome.contextMenus.onClicked.addListener(function(info, tab) {
+    if (info.menuItemId === "ffiii-scan") {
+        // Send a message to the content script to execute the function
+        console.log('sending request for scan to', tab);
+        chrome.tabs.sendMessage(tab!.id!, { action: "content.scan_transactions" });
+    }
+});
+
 chrome.runtime.onInstalled.addListener(registerSelfWithHubExtension);
 
 chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, sendResponse: Function) => {
