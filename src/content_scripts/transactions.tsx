@@ -18,7 +18,7 @@ import {PageAccount} from "../common/accounts";
 import {runOnURLMatch} from "../common/buttons";
 import {runOnContentChange} from "../common/autorun";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
-import {debugAutoRun, isSingleAccountBank} from "../extensionid";
+import {allowFuzzyDates, debugAutoRun, isSingleAccountBank, transactionsPerPage} from "../extensionid";
 import {backToAccountsPage} from "./auto_run/transactions";
 import {debugLog, showDebug} from "./auto_run/debug";
 import {FireflyTransactionUIAdder, MetaTx} from "./scan/transactions";
@@ -134,13 +134,21 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
 
 function isSame(remote: TransactionRead, scraped: TransactionSplitStore) {
     let tx = remote.attributes.transactions[0];
+    if (tx.description !== scraped.description) {
+        return false;
+    }
+    if (tx.type !== scraped.type) {
+        return false;
+    }
     if (parseFloat(tx.amount) !== parseFloat(scraped.amount)) {
         return false;
     }
-    if (Date.parse(tx.date as any as string) !== Date.parse(scraped.date as any as string)) {
-        return false;
-    }
-    if (tx.description !== scraped.description) {
+    let remoteDate = Date.parse(tx.date as any as string);
+    let scrapedDate = Date.parse(scraped.date as any as string);
+    if (remoteDate !== scrapedDate) {
+        if (allowFuzzyDates) {
+            return Math.abs(remoteDate - scrapedDate) < 24*60*60*1000;
+        }
         return false;
     }
     return true;
@@ -155,7 +163,7 @@ async function doScan(): Promise<void> {
     pageAlreadyScraped = true;
     let remoteTxs: TransactionRead[] = await chrome.runtime.sendMessage({
         action: "list_transactions",
-        value: acct.id,
+        value: {accountId: acct.id, endDate: txs[0].tx.transactions[0].date, pageSize: transactionsPerPage},
     });
     const adder = new FireflyTransactionUIAdder(acct.id);
     for (let i = 0; i < txs.length; i++) {
@@ -184,7 +192,7 @@ async function doScan(): Promise<void> {
             // TODO: Also factor in similarity of description (for the case where there are multiple Txs with the same date)
             let prevRow = Array.from(txs).reverse().find(x => new Date(x.tx.transactions[0].date) >= new Date(v.attributes.transactions[0].date));
             return ({
-                tx: {...v.attributes.transactions[0], remoteId: v.id},
+                tx: {...v.attributes.transactions[0], remoteId: v.id}, // BASE: add all sub transactions to remoteOnly
                 prevRow: prevRow ? prevRow?.row as HTMLElement : undefined,
                 nextRow: prevRow ? undefined : txs[0].row as HTMLElement,
             } as MetaTx);

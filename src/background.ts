@@ -122,10 +122,10 @@ export async function listAccounts(): Promise<AccountRead[]> {
     return doListAccounts(bearer, baseURL);
 }
 
-export async function listTxs(accountId: string): Promise<TransactionRead[]> {
+export async function listTxs(accountId: string, endDate?: Date, pageSize?: number): Promise<TransactionRead[]> {
     const bearer = await getBearerToken();
     const baseURL = await getApiBaseUrl();
-    return doListTxs(accountId, bearer, baseURL);
+    return doListTxs(accountId, bearer, baseURL, endDate, pageSize);
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -162,7 +162,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             e => console.log('failed to deleteTransaction', `ID: ${message.value}`, e)
         );
     } else if (message.action === "list_transactions") {
-        listTxs(message.value).then(sendResponse)
+        const value: {accountId: string, pageSize: number, endDate: Date} = message.value;
+        listTxs(value.accountId, new Date(value.endDate), value.pageSize).then(sendResponse)
     } else if (message.action === "store_opening") {
         patchDatesOB(message.value).then(
             obStore => storeOpeningBalance(obStore),

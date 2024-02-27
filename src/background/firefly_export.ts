@@ -50,6 +50,8 @@ export async function doListTxs(
     accountId: string,
     token: string,
     baseURL: string,
+    endDate?: Date,
+    pageSize?: number,
 ): Promise<TransactionRead[]> {
     let api = new AccountsApi(
         new Configuration({
@@ -64,6 +66,8 @@ export async function doListTxs(
     );
     return api.listTransactionByAccount({
         id: accountId,
+        end: endDate,
+        limit: pageSize,
     }).then(
         async (arr: TransactionArray) => arr.data,
     );
