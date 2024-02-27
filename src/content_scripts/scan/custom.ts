@@ -7,7 +7,7 @@ export function applyStylingToFoundRow(
 }
 
 export function applyStylingAndAddButtonForLocalOnlyRow(
-    row: HTMLElement, syncToRemote: () => void,
+    row: HTMLElement, syncToRemote: (e: MouseEvent) => void,
 ): void {
     // This updates the row element to indicate that the data was only found on
     // the local page and is missing from the remote server. It also adds a
@@ -15,7 +15,7 @@ export function applyStylingAndAddButtonForLocalOnlyRow(
     // TODO: Update the styles/layout if necessary
     let node = document.createElement("button");
     node.innerText = 'Sync to Firefly III';
-    node.onclick = syncToRemote;
+    node.addEventListener('click', syncToRemote);
     node.style.margin = "0 auto";
     node.style.display = "block";
     node.style.height = "100%";
