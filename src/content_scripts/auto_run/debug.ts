@@ -18,6 +18,9 @@ function addDebugElement() {
 }
 
 export function showDebug(s: string): void {
+    if (!debugAutoRun) {
+        return;
+    }
     let el = document.getElementById(debugElementId);
     if (!el) {
         el = addDebugElement();

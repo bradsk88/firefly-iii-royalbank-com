@@ -4,7 +4,8 @@
   "description": "Description goes here",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "contextMenus"
   ],
   "externally_connectable": {
     "ids": [
