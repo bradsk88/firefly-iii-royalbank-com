@@ -5,7 +5,9 @@
 // account and pause for the developer to manually navigate to the
 // next account.
 export const debugAutoRun = false;
-// bankDomain is used // TODO: FOr what
+// bankDomain is used granting this scraper run-time permission
+// to access the bank website. This is done to respect the user's
+// privacy by only requesting the minimal permissions.
 export const bankDomain = 'royalbank.com';
 // autoRunStartURL is the URL that will be opened in a new tab when
 // the auto run procedure is started for this scraper.
