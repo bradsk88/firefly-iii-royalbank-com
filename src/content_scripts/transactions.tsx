@@ -1,4 +1,5 @@
 import {
+    AccountRoleProperty,
     TransactionRead,
     TransactionSplitStore,
     TransactionStore,
@@ -165,7 +166,9 @@ async function doScan(): Promise<void> {
         action: "list_transactions",
         value: {accountId: acct.id, endDate: txs[0].tx.transactions[0].date, pageSize: transactionsPerPage},
     });
-    const adder = new FireflyTransactionUIAdder(acct.id);
+    const adder = new FireflyTransactionUIAdder(
+        acct.id, acct.attributes.accountRole == AccountRoleProperty.CcAsset,
+    );
     for (let i = 0; i < txs.length; i++) {
         const v = txs[i];
         const scraped = v.tx.transactions[0];

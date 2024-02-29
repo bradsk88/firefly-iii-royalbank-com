@@ -54,6 +54,7 @@ export class FireflyTransactionUIAdder {
 
     constructor(
         private readonly accountNo: string,
+        private readonly invertValues: boolean,
     ) {
     }
 
@@ -110,8 +111,8 @@ export class FireflyTransactionUIAdder {
         let tType = TransactionTypeProperty.Deposit;
         let srcId: string | undefined = undefined;
         let destId: string | undefined = this.accountNo;
-        // BASE: Make this dependent upon the account type (current works for credit cards)
-        if (parseInt(row.tx.amount) > 0) {
+        const inverter = this.invertValues ? 1 : -1;
+        if (inverter * parseInt(row.tx.amount) > 0) {
             tType = TransactionTypeProperty.Withdrawal;
             srcId = this.accountNo;
             destId = undefined;
