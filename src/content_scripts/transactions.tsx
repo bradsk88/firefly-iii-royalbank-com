@@ -108,11 +108,12 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
     const acct = await getCurrentPageAccount(accounts);
     const txs = scrapeTransactionsFromPage(acct);
     pageAlreadyScraped = true;
+    const txOnly = txs.map(v => v.tx);
     if (!debugAutoRun) {
         await chrome.runtime.sendMessage({
                 action: "store_transactions",
                 is_auto_run: isAutoRun,
-                value: txs,
+                value: txOnly,
             },
             () => {
             });
@@ -129,7 +130,7 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
             name: acct.attributes.name,
             id: acct.id,
         },
-        pageTransactions: txs.map(v => v.tx),
+        pageTransactions: txOnly,
     };
 }
 
