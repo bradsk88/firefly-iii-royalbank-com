@@ -34,6 +34,7 @@ const backgroundLog = (string: string): void => {
         value: string,
     }, () => {
     });
+    console.log(string);
 }
 
 function registerSelfWithHubExtension() {
